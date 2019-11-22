@@ -76,7 +76,7 @@
 		sound-name-prefix = "Speaker Amp";
 	};
 
-	sound {
+	sound_card: sound {
 		compatible = "simple-audio-card";
 
 		simple-audio-card,name = "gcw0-audio";
@@ -139,7 +139,7 @@
 		pinctrl-0 = <&pins_pwm1>;
 	};
 
-	gpio-keys {
+	gpio_keys: gpio-keys {
 		compatible = "gpio-keys";
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -188,28 +188,28 @@
 			gpios = <&gpe 20 GPIO_ACTIVE_LOW>;
 		};
 
-		button@6 {
+		btn6: button@6 {
 			label = "Button Y";
 			linux,code = <KEY_SPACE>;
 			linux,can-disable;
 			gpios = <&gpe 27 GPIO_ACTIVE_LOW>;
 		};
 
-		button@7 {
+		btn7: button@7 {
 			label = "Button X";
 			linux,code = <KEY_LEFTSHIFT>;
 			linux,can-disable;
 			gpios = <&gpe 28 GPIO_ACTIVE_LOW>;
 		};
 
-		button@8 {
+		btn8: button@8 {
 			label = "Left shoulder button";
 			linux,code = <KEY_TAB>;
 			linux,can-disable;
 			gpios = <&gpb 20 GPIO_ACTIVE_LOW>;
 		};
 
-		button@9 {
+		btn9: button@9 {
 			label = "Right shoulder button";
 			linux,code = <KEY_BACKSPACE>;
 			linux,can-disable;
@@ -364,7 +364,7 @@
 		cs-gpios = <&gpe 16 GPIO_ACTIVE_HIGH>;
 		num-chipselects = <1>;
 
-		nt39016@0 {
+		panel: nt39016@0 {
 			compatible = "kingdisplay,kd035g6-54nt";
 			reg = <0>;
 
@@ -435,7 +435,7 @@
 		io-channels = <&adc INGENIC_ADC_BATTERY>;
 	};
 
-	pmu {
+	pmu: pmu {
 		compatible = "ingenic,jz4770-battery", "ingenic,jz4740-battery";
 		io-channels = <&vdiv>;
 		io-channel-names = "battery";
@@ -445,7 +445,7 @@
 		power-supplies = <&act8600>, <&usb_conn>, <&dc_charger>;
 	};
 
-	joystick {
+	joystick: joystick {
 		compatible = "adc-joystick";
 		io-channels = <&adc INGENIC_ADC_TOUCH_XP>,
 			      <&adc INGENIC_ADC_TOUCH_YP>;
