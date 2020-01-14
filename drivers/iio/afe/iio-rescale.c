@@ -36,6 +36,27 @@ struct rescale {
 	int *scale_data;
 };
 
+static int rescale_write_raw(struct iio_dev *indio_dev,
+			     struct iio_chan_spec const *chan,
+			     int val, int val2, long mask)
+{
+	struct rescale *rescale = iio_priv(indio_dev);
+	unsigned long long tmp;
+
+	switch (mask) {
+	case IIO_CHAN_INFO_SCALE:
+		tmp = val * 1000000000LL;
+		do_div(tmp, rescale->numerator);
+		tmp *= rescale->denominator;
+		do_div(tmp, 1000000000LL);
+		return iio_write_channel_attribute(rescale->source, tmp, 0,
+						   IIO_CHAN_INFO_SCALE);
+	default:
+		return iio_write_channel_attribute(rescale->source,
+						   val, val2, mask);
+	}
+}
+
 static int rescale_convert(struct rescale *rescale, int type,
 			   const int val, const int val2,
 			   int *val_out, int *val2_out)
@@ -130,6 +151,7 @@ static int rescale_read_avail(struct iio_dev *indio_dev,
 }
 
 static const struct iio_info rescale_info = {
+	.write_raw = rescale_write_raw,
 	.read_raw = rescale_read_raw,
 	.read_avail = rescale_read_avail,
 };
