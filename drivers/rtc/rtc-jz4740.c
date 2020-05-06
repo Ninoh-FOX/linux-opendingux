@@ -5,6 +5,7 @@
  *	 JZ4740 SoC RTC driver
  */
 
+#include <linux/bitfield.h>
 #include <linux/clk.h>
 #include <linux/io.h>
 #include <linux/kernel.h>
@@ -38,6 +39,9 @@
 #define JZ_RTC_CTRL_AE		BIT(2)
 #define JZ_RTC_CTRL_ENABLE	BIT(0)
 
+#define JZ_RTC_REGULATOR_NC1HZ_MASK	GENMASK(15, 0)
+#define JZ_RTC_REGULATOR_ADJC_MASK	GENMASK(25, 16)
+
 /* Magic value to enable writes on jz4780 */
 #define JZ_RTC_WENR_MAGIC	0xA55A
 
@@ -55,6 +59,7 @@ struct jz4740_rtc {
 	enum jz4740_rtc_type type;
 
 	struct rtc_device *rtc;
+	struct clk *clk;
 
 	spinlock_t lock;
 };
@@ -216,12 +221,51 @@ static int jz4740_rtc_alarm_irq_enable(struct device *dev, unsigned int enable)
 	return jz4740_rtc_ctrl_set_bits(rtc, JZ_RTC_CTRL_AF_IRQ, enable);
 }
 
+static int jz4740_rtc_read_offset(struct device *dev, long *offset)
+{
+	struct jz4740_rtc *rtc = dev_get_drvdata(dev);
+	long rate = clk_get_rate(rtc->clk);
+	s32 nc1hz, adjc, offset1k;
+	u32 reg;
+
+	reg = jz4740_rtc_reg_read(rtc, JZ_REG_RTC_REGULATOR);
+	nc1hz = FIELD_GET(JZ_RTC_REGULATOR_NC1HZ_MASK, reg);
+	adjc = FIELD_GET(JZ_RTC_REGULATOR_ADJC_MASK, reg);
+
+	offset1k = (nc1hz - rate + 1) * 1024L + adjc;
+	*offset = offset1k * 1000000L / (rate * 1024L);
+
+	return 0;
+}
+
+static int jz4740_rtc_set_offset(struct device *dev, long offset)
+{
+	struct jz4740_rtc *rtc = dev_get_drvdata(dev);
+	long rate = clk_get_rate(rtc->clk);
+	s32 offset1k, adjc, nc1hz;
+
+	offset1k = div_s64_rem(offset * rate * 1024LL, 1000000LL, &adjc);
+	nc1hz = rate - 1 + offset1k / 1024L;
+
+	if (adjc < 0) {
+		nc1hz--;
+		adjc += 1024;
+	}
+
+	nc1hz = FIELD_PREP(JZ_RTC_REGULATOR_NC1HZ_MASK, nc1hz);
+	adjc = FIELD_PREP(JZ_RTC_REGULATOR_ADJC_MASK, adjc);
+
+	return jz4740_rtc_reg_write(rtc, JZ_REG_RTC_REGULATOR, nc1hz | adjc);
+}
+
 static const struct rtc_class_ops jz4740_rtc_ops = {
 	.read_time	= jz4740_rtc_read_time,
 	.set_time	= jz4740_rtc_set_time,
 	.read_alarm	= jz4740_rtc_read_alarm,
 	.set_alarm	= jz4740_rtc_set_alarm,
 	.alarm_irq_enable = jz4740_rtc_alarm_irq_enable,
+	.read_offset	= jz4740_rtc_read_offset,
+	.set_offset	= jz4740_rtc_set_offset,
 };
 
 static irqreturn_t jz4740_rtc_irq(int irq, void *data)
@@ -349,6 +393,7 @@ static int jz4740_rtc_probe(struct platform_device *pdev)
 
 	spin_lock_init(&rtc->lock);
 
+	rtc->clk = clk;
 	platform_set_drvdata(pdev, rtc);
 
 	device_init_wakeup(dev, 1);
