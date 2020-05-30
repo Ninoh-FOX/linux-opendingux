@@ -64,6 +64,27 @@ int mipi_dsi_create_packet(struct mipi_dsi_packet *packet,
 			   const struct mipi_dsi_msg *msg);
 
 /**
+ * enum mipi_dcs_bus_type - MIPI DCS bus types
+ * @MIPI_DCS_BUS_TYPE_DSI: MIPI DSI
+ * @MIPI_DCS_BUS_TYPE_DBI_SPI_C1: DBI with SPI carrier, 9 bits per word, with
+ *    the data/command information in the 9th (MSB) bit
+ * @MIPI_DCS_BUS_TYPE_DBI_SPI_C2: DBI with SPI carrier, 16 bits per word, with
+ *    the data/command information in the 9th bit, and 7 MSB bits of padding
+ * @MIPI_DCS_BUS_TYPE_DBI_SPI_C3: DBI with SPI carrier, 8 bits per word, with
+ *    the data/command information carried by a separate GPIO
+ * @MIPI_DCS_BUS_TYPE_DBI_M6800: Motorola 6800 type parallel bus
+ * @MIPI_DCS_BUS_TYPE_DBI_I8080: Intel 8080 type parallel bus
+ */
+enum mipi_dcs_bus_type {
+	MIPI_DCS_BUS_TYPE_DSI		= BIT(0),
+	MIPI_DCS_BUS_TYPE_DBI_SPI_C1	= BIT(1),
+	MIPI_DCS_BUS_TYPE_DBI_SPI_C2	= BIT(2),
+	MIPI_DCS_BUS_TYPE_DBI_SPI_C3	= BIT(3),
+	MIPI_DCS_BUS_TYPE_DBI_M6800	= BIT(4),
+	MIPI_DCS_BUS_TYPE_DBI_I8080	= BIT(5),
+};
+
+/**
  * struct mipi_dsi_host_ops - DSI bus operations
  * @attach: attach DSI device to DSI host
  * @detach: detach DSI device from DSI host
@@ -94,11 +115,13 @@ struct mipi_dsi_host_ops {
  * struct mipi_dsi_host - DSI host device
  * @dev: driver model device node for this DSI host
  * @ops: DSI host operations
+ * @bus_types: Bitmask of supported MIPI bus types (enum mipi_dcs_bus_type)
  * @list: list management
  */
 struct mipi_dsi_host {
 	struct device *dev;
 	const struct mipi_dsi_host_ops *ops;
+	unsigned int bus_types;
 	struct list_head list;
 };
 
@@ -162,6 +185,7 @@ struct mipi_dsi_device_info {
  * @host: DSI host for this peripheral
  * @dev: driver model device node for this peripheral
  * @name: DSI peripheral chip type
+ * @bus_type: MIPI bus type
  * @channel: virtual channel assigned to the peripheral
  * @format: pixel format for video mode
  * @lanes: number of active data lanes
@@ -178,6 +202,7 @@ struct mipi_dsi_device {
 	struct device dev;
 
 	char name[DSI_DEV_NAME_SIZE];
+	enum mipi_dcs_bus_type bus_type;
 	unsigned int channel;
 	unsigned int lanes;
 	enum mipi_dsi_pixel_format format;
