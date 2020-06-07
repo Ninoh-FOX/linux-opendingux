@@ -10,6 +10,7 @@
 #define __DRM_MIPI_DSI_H__
 
 #include <linux/device.h>
+#include <linux/of_graph.h>
 
 struct mipi_dsi_host;
 struct mipi_dsi_device;
@@ -349,5 +350,23 @@ void mipi_dsi_driver_unregister(struct mipi_dsi_driver *driver);
 #define module_mipi_dsi_driver(__mipi_dsi_driver) \
 	module_driver(__mipi_dsi_driver, mipi_dsi_driver_register, \
 			mipi_dsi_driver_unregister)
+
+#if IS_ENABLED(CONFIG_TINYDRM_DSI)
+int mipi_dsi_register_tiny_driver(struct mipi_dsi_device *dsi);
+#else
+static inline int mipi_dsi_register_tiny_driver(struct mipi_dsi_device *dsi)
+{
+	return 0;
+}
+#endif
+
+static inline int mipi_dsi_maybe_register_tiny_driver(struct mipi_dsi_device *dsi)
+{
+	/* Register the TinyDRM DSI/DBI driver if the panel has no controller */
+	if (!of_graph_get_port_by_id(dsi->dev.of_node, 0))
+		return mipi_dsi_register_tiny_driver(dsi);
+
+	return 0;
+}
 
 #endif /* __DRM_MIPI_DSI__ */

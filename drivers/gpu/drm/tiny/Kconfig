@@ -54,6 +54,14 @@ config DRM_SIMPLEDRM
 	  On x86 and compatible, you should also select CONFIG_X86_SYSFB to
 	  use UEFI and VESA framebuffers.
 
+config TINYDRM_DSI
+	tristate "DRM support for generic DBI/DSI display panels"
+	depends on DRM && DRM_MIPI_DSI
+	select DRM_MIPI_DBI
+	select DRM_KMS_CMA_HELPER
+	help
+	  DRM driver for generic DBI/DSI display panels
+
 config TINYDRM_HX8357D
 	tristate "DRM support for HX8357D display panels"
 	depends on DRM && SPI
