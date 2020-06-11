@@ -1,0 +1,92 @@
+// SPDX-License-Identifier: GPL-2.0
+/dts-v1/;
+
+#include "rs90.dts"
+
+/ {
+	compatible = "ylm,pmp5", "ingenic,jz4725b";
+	model = "PMP5";
+
+	keys@2 {
+		compatible = "gpio-keys";
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		key@0 {
+			label = "D-pad left";
+			linux,code = <KEY_LEFT>;
+			gpios = <&gpb 31 GPIO_ACTIVE_LOW>;
+		};
+
+		key@1 {
+			label = "D-pad right";
+			linux,code = <KEY_RIGHT>;
+			gpios = <&gpd 21 GPIO_ACTIVE_LOW>;
+		};
+
+		key@2 {
+			label = "Button A";
+			linux,code = <KEY_LEFTCTRL>;
+			gpios = <&gpc 31 GPIO_ACTIVE_LOW>;
+		};
+
+		key@3 {
+			label = "Button B";
+			linux,code = <KEY_LEFTALT>;
+			gpios = <&gpc 30 GPIO_ACTIVE_LOW>;
+		};
+
+		key@4 {
+			label = "Right shoulder button";
+			linux,code = <KEY_BACKSPACE>;
+			gpios = <&gpc 12 GPIO_ACTIVE_LOW>;
+			debounce-interval = <10>;
+		};
+
+		key@5 {
+			label = "Start button";
+			linux,code = <KEY_ENTER>;
+			gpios = <&gpd 17 GPIO_ACTIVE_LOW>;
+		};
+	};
+
+	keys@3 {
+		compatible = "adc-keys";
+		io-channels = <&adc INGENIC_ADC_AUX>;
+		io-channel-names = "buttons";
+		keyup-threshold-microvolt = <2800000>;
+		poll-interval = <30>;
+
+		key@0 {
+			label = "D-pad up";
+			linux,code = <KEY_UP>;
+			press-threshold-microvolt = <1500000>;	// Up key pressed voltage: ~1370 mV
+		};
+
+		key@1 {
+			label = "Select button";
+			linux,code = <KEY_ESC>;
+			press-threshold-microvolt = <1200000>;	// Select key pressed voltage: ~1060mV
+		};
+
+		key@2 {
+			label = "Left shoulder button";
+			linux,code = <KEY_TAB>;
+			press-threshold-microvolt = <800000>;	// L key pressed voltage: ~680mV
+		};
+
+		key@3 {
+			label = "D-pad down";
+			linux,code = <KEY_DOWN>;
+			press-threshold-microvolt = <500000>;	// Down key pressed voltage: ~170mV
+		};
+	};
+};
+
+&gpio_keys {
+	status = "disabled";
+};
+
+&gpio_keys_1 {
+	status = "disabled";
+};
