@@ -187,6 +187,30 @@
 			};
 		};
 	};
+
+	battery: battery {
+		compatible = "simple-battery";
+		voltage-min-design-microvolt = <3692000>;
+		voltage-max-design-microvolt = <3900000>;
+		charge-full-design-microamp-hours = <1020000>;
+	};
+
+	resistor: resistor {
+		compatible = "voltage-divider";
+		#io-channel-cells = <0>;
+
+		output-ohms = <1125>;
+		full-ohms = <3900>;
+
+		io-channels = <&adc INGENIC_ADC_BATTERY>;
+	};
+
+	pmu {
+		compatible = "ingenic,jz4725b-battery", "ingenic,jz4740-battery";
+		io-channels = <&resistor>;
+		io-channel-names = "battery";
+		monitored-battery = <&battery>;
+	};
 };
 
 &ext {
