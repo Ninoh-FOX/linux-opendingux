@@ -37,6 +37,10 @@ static __init char *ingenic_get_system_type(unsigned long machtype)
 		return "JZ4775";
 	case MACH_INGENIC_JZ4770:
 		return "JZ4770";
+	case MACH_INGENIC_JZ4760B:
+		return "JZ4760B";
+	case MACH_INGENIC_JZ4760:
+		return "JZ4760";
 	case MACH_INGENIC_JZ4725B:
 		return "JZ4725B";
 	default:
@@ -63,6 +67,8 @@ static __init const void *ingenic_fixup_fdt(const void *fdt, const void *match_d
 static const struct of_device_id ingenic_of_match[] __initconst = {
 	{ .compatible = "ingenic,jz4740", .data = (void *)MACH_INGENIC_JZ4740 },
 	{ .compatible = "ingenic,jz4725b", .data = (void *)MACH_INGENIC_JZ4725B },
+	{ .compatible = "ingenic,jz4760", .data = (void *)MACH_INGENIC_JZ4760 },
+	{ .compatible = "ingenic,jz4760b", .data = (void *)MACH_INGENIC_JZ4760B },
 	{ .compatible = "ingenic,jz4770", .data = (void *)MACH_INGENIC_JZ4770 },
 	{ .compatible = "ingenic,jz4775", .data = (void *)MACH_INGENIC_JZ4775 },
 	{ .compatible = "ingenic,jz4780", .data = (void *)MACH_INGENIC_JZ4780 },
