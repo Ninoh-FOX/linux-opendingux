@@ -15,13 +15,19 @@ properties:
     pattern: '^usb-phy@.*'
 
   compatible:
-    enum:
-      - ingenic,jz4770-phy
-      - ingenic,jz4775-phy
-      - ingenic,jz4780-phy
-      - ingenic,x1000-phy
-      - ingenic,x1830-phy
-      - ingenic,x2000-phy
+    oneOf:
+      - enum:
+          - ingenic,jz4760-phy
+          - ingenic,jz4775-phy
+          - ingenic,jz4780-phy
+          - ingenic,x1000-phy
+          - ingenic,x1830-phy
+          - ingenic,x2000-phy
+      - items:
+          - enum:
+              - ingenic,jz4760b-phy
+              - ingenic,jz4770-phy
+          - const: ingenic,jz4760-phy
 
   reg:
     maxItems: 1
@@ -48,7 +54,7 @@ examples:
   - |
     #include <dt-bindings/clock/jz4770-cgu.h>
     otg_phy: usb-phy@3c {
-      compatible = "ingenic,jz4770-phy";
+      compatible = "ingenic,jz4770-phy", "ingenic,jz4760-phy";
       reg = <0x3c 0x10>;
 
       vcc-supply = <&vcc>;
