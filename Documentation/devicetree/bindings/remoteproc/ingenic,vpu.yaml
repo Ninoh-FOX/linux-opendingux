@@ -17,7 +17,10 @@ maintainers:
 
 properties:
   compatible:
-    const: ingenic,jz4770-vpu-rproc
+    items:
+      - enum:
+          - ingenic,jz4770-vpu-rproc
+      - const: simple-mfd
 
   reg:
     items:
@@ -54,6 +57,10 @@ required:
   - clock-names
   - interrupts
 
+patternProperties:
+  "^hwlock@[a-f0-9]+$":
+    allOf: [ $ref: "../hwlock/ingenic,vpu-hwspinlock.yaml" ]
+
 additionalProperties: false
 
 examples:
@@ -61,7 +68,10 @@ examples:
     #include <dt-bindings/clock/jz4770-cgu.h>
 
     vpu: video-decoder@132a0000 {
-      compatible = "ingenic,jz4770-vpu-rproc";
+      compatible = "ingenic,jz4770-vpu-rproc", "simple-mfd";
+      #address-cells = <1>;
+      #size-cells = <1>;
+      ranges = <0x0 0x132a0000 0x20>;
 
       reg = <0x132a0000 0x20>, /* AUX */
             <0x132b0000 0x4000>, /* TCSM0 */
@@ -74,4 +84,12 @@ examples:
 
       interrupt-parent = <&cpuintc>;
       interrupts = <3>;
+
+      hwlock: hwlock@4 {
+        compatible = "ingenic,jz4770-vpu-hwspinlock",
+                     "ingenic,jz4755-vpu-hwspinlock";
+        reg = <0x4 0xc>;
+
+        #hwlock-cells = <1>;
+      };
     };
