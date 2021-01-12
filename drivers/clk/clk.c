@@ -2442,6 +2442,15 @@ struct clk *clk_get_parent(struct clk *clk)
 }
 EXPORT_SYMBOL_GPL(clk_get_parent);
 
+struct clk *clk_get_first_to_set_rate(struct clk *clk)
+{
+	while (clk && (clk->core->flags & CLK_SET_RATE_PARENT))
+		clk = clk_get_parent(clk);
+
+	return clk;
+}
+EXPORT_SYMBOL_GPL(clk_get_first_to_set_rate);
+
 static struct clk_core *__clk_init_parent(struct clk_core *core)
 {
 	u8 index = 0;
