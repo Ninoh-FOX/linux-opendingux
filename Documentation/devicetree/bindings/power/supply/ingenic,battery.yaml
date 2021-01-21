@@ -20,6 +20,8 @@ properties:
       - items:
           - enum:
               - ingenic,jz4725b-battery
+              - ingenic,jz4760-battery
+              - ingenic,jz4760b-battery
               - ingenic,jz4770-battery
           - const: ingenic,jz4740-battery
 
