@@ -1,0 +1,14 @@
+// SPDX-License-Identifier: GPL-2.0
+/dts-v1/;
+
+/* LDK (horizontal) is a RS-97 with a different panel */
+#include "rs97.dts"
+
+/ {
+	compatible = "wolsen,ldkh", "ingenic,jz4760";
+	model = "Wolsen LDK (horizontal)";
+};
+
+&panel {
+	compatible = "innolux,ej030na";
+};
