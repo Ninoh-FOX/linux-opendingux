@@ -23,14 +23,64 @@ properties:
           - const: qi,lb60
           - const: ingenic,jz4740
 
+      - description: Wolsen LDK (horizontal)
+        items:
+          - const: wolsen,ldkh
+          - const: ingenic,jz4760
+
+      - description: Wolsen LDK (vertical)
+        items:
+          - const: wolsen,ldkv
+          - const: ingenic,jz4760b
+
+      - description: Wolsen PlayGo
+        items:
+          - const: wolsen,playgo
+          - const: ingenic,jz4770
+
       - description: YLM RetroMini RS-90
         items:
           - const: ylm,rs90
           - const: ingenic,jz4725b
 
+      - description: YLM RS-97
+        items:
+          - const: ylm,rs97
+          - const: ingenic,jz4760
+
+      - description: YLM RG-300
+        items:
+          - const: ylm,rg300
+          - const: ingenic,jz4760b
+
+      - description: YLM RG-99
+        items:
+          - const: ylm,rg99
+          - const: ingenic,jz4725b
+
       - description: Game Consoles Worldwide GCW Zero
         items:
           - const: gcw,zero
+          - const: ingenic,jz4770
+
+      - description: YLM RG-350
+        items:
+          - const: ylm,rg350
+          - const: ingenic,jz4770
+
+      - description: YLM RG-350M
+        items:
+          - const: ylm,rg350m
+          - const: ingenic,jz4770
+
+      - description: YLM RG-280M
+        items:
+          - const: ylm,rg280m
+          - const: ingenic,jz4770
+
+      - description: YLM RG-280V
+        items:
+          - const: ylm,rg280v
           - const: ingenic,jz4770
 
       - description: MIPS Creator CI20
