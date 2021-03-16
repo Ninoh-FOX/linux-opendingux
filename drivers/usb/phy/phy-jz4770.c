@@ -277,6 +277,7 @@ static const struct ingenic_soc_info x1830_soc_info = {
 };
 
 static const struct of_device_id ingenic_usb_phy_of_matches[] = {
+	{ .compatible = "ingenic,jz4760-phy", .data = &jz4770_soc_info },
 	{ .compatible = "ingenic,jz4770-phy", .data = &jz4770_soc_info },
 	{ .compatible = "ingenic,jz4780-phy", .data = &jz4780_soc_info },
 	{ .compatible = "ingenic,x1000-phy", .data = &x1000_soc_info },
