@@ -1,0 +1,63 @@
+// SPDX-License-Identifier: GPL-2.0
+/dts-v1/;
+
+#include "rg280m.dts"
+
+#include <dt-bindings/interrupt-controller/irq.h>
+
+/ {
+	compatible = "ylm,rg350m", "ingenic,jz4770";
+	model = "Anbernic RG-350M";
+
+	hdmi_power: regulator@3 {
+		compatible = "regulator-fixed";
+		regulator-name = "hdmi_pwr";
+		gpio = <&gpf 22 0>;
+		enable-active-high;
+
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		vin-supply = <&vcc>;
+	};
+};
+
+&panel {
+	compatible = "leadtek,ltk035c5444t-spi";
+	spi-max-frequency = <15000000>;
+};
+
+&pins_lcd {
+	groups = "lcd-24bit";
+};
+
+&gpio_keys {
+	button@18 {
+		label = "R3 joystick button";
+		linux,code = <KEY_KPDOT>;
+		linux,can-disable;
+		gpios = <&gpb 15 GPIO_ACTIVE_LOW>;
+	};
+};
+
+&joysticks {
+	io-channels = <&adc INGENIC_ADC_TOUCH_YP>,
+		      <&adc INGENIC_ADC_TOUCH_XP>,
+		      <&adc INGENIC_ADC_TOUCH_YN>,
+		      <&adc INGENIC_ADC_TOUCH_XN>;
+
+	axis@2 {
+		reg = <2>;
+		linux,code = <ABS_RX>;
+		abs-range = <200 3000>;
+		abs-fuzz = <4>;
+		abs-flat = <200>;
+	};
+
+	axis@3 {
+		reg = <3>;
+		linux,code = <ABS_RY>;
+		abs-range = <200 3000>;
+		abs-fuzz = <4>;
+		abs-flat = <200>;
+	};
+};
