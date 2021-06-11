@@ -19,6 +19,19 @@
 		regulator-max-microvolt = <3300000>;
 		vin-supply = <&vcc>;
 	};
+
+	hdmi-connector {
+		compatible = "hdmi-connector";
+		label = "hdmi";
+
+		type = "c";
+
+		port {
+			hdmi_connector_in: endpoint {
+				remote-endpoint = <&hdmi_connector_out>;
+			};
+		};
+	};
 };
 
 &panel {
@@ -60,4 +73,58 @@
 		abs-fuzz = <4>;
 		abs-flat = <200>;
 	};
+};
+
+&i2c0 {
+	status = "okay";
+
+	clock-frequency = <100000>; /* 100 kHz */
+
+	hdmi@4c {
+		compatible = "ite,it66121";
+		reg = <0x4c>;
+
+		interrupt-parent = <&gpf>;
+		interrupts = <12 IRQ_TYPE_EDGE_FALLING>;
+		interrupt-names = "irq";
+
+		reset-gpios = <&gpe 6 GPIO_ACTIVE_LOW>;
+
+		pinctrl-names = "default";
+		pinctrl-0 = <&pins_it6610>;
+
+		vrf12-supply = <&hdmi_power>;
+		vcn33-supply = <&hdmi_power>;
+		vcn18-supply = <&hdmi_power>;
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				reg = <0>;
+
+				it66121_input: endpoint {
+					bus-width = <24>;
+					remote-endpoint = <&hdmi_output>;
+				};
+			};
+
+			port@1 {
+				reg = <1>;
+
+				hdmi_connector_out: endpoint {
+					remote-endpoint = <&hdmi_connector_in>;
+				};
+			};
+		};
+	};
+};
+
+&hdmi_output {
+	remote-endpoint = <&it66121_input>;
+};
+
+&hdmi_input {
+	remote-endpoint = <&hdmi_input>;
 };

@@ -716,7 +716,7 @@
 
 	clock-frequency = <400000>; /* 400 kHz */
 
-	radio@11 {
+	radio: radio@11 {
 		compatible = "rda,rda5807";
 		reg = <0x11>;
 

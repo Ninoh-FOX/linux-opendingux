@@ -109,6 +109,10 @@
 	status = "disabled";
 };
 
+&it6610 {
+	status = "disabled";
+};
+
 &dc_charger {
 	status = "disabled";
 };
@@ -122,6 +126,10 @@
 };
 
 &i2c0 {
+	status = "disabled";
+};
+
+&radio {
 	status = "disabled";
 };
 
