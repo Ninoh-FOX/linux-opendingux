@@ -371,6 +371,40 @@
 		status = "disabled";
 	};
 
+	ssi0: spi@10043000 {
+		compatible = "ingenic,jz4770-spi", "ingenic,jz4750-spi";
+		reg = <0x10043000 0x1c>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		interrupt-parent = <&intc>;
+		interrupts = <8>;
+
+		clocks = <&cgu JZ4770_CLK_SSI0>;
+
+		dmas = <&dmac1 23 0xffffffff>, <&dmac1 22 0xffffffff>;
+		dma-names = "rx", "tx";
+
+		status = "disabled";
+	};
+
+	ssi1: spi@10044000 {
+		compatible = "ingenic,jz4770-spi", "ingenic,jz4750-spi";
+		reg = <0x10044000 0x1c>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		interrupt-parent = <&intc>;
+		interrupts = <7>;
+
+		clocks = <&cgu JZ4770_CLK_SSI1>;
+
+		dmas = <&dmac1 33 0xffffffff>, <&dmac1 32 0xffffffff>;
+		dma-names = "rx", "tx";
+
+		status = "disabled";
+	};
+
 	i2c0: i2c-controller@10050000 {
 		compatible = "ingenic,jz4770-i2c";
 		reg = <0x10050000 0x1000>;
@@ -468,7 +502,7 @@
 	};
 
 	vpu: video-decoder@132a0000 {
-		compatible = "ingenic,jz4770-vpu-rproc";
+		compatible = "ingenic,jz4770-vpu-rproc", "simple-mfd";
 		#address-cells = <1>;
 		#size-cells = <1>;
 		ranges = <0x0 0x132a0000 0x20>;
@@ -484,6 +518,14 @@
 
 		interrupt-parent = <&cpuintc>;
 		interrupts = <3>;
+
+		hwlock: hwlock@4 {
+			compatible = "ingenic,jz4770-vpu-hwspinlock",
+				     "ingenic,jz4755-vpu-hwspinlock";
+			reg = <0x4 0xc>;
+
+			#hwlock-cells = <0>;
+		};
 	};
 
 	dmac0: dma-controller@13420000 {
