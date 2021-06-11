@@ -48,6 +48,17 @@
 		vin-supply = <&vcc>;
 	};
 
+	usb_vbus: regulator@2 {
+		compatible = "regulator-fixed";
+		regulator-name = "USB Power";
+		gpio = <&gpf 10 0>;
+		regulator-always-on; /* always ON for now */
+
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		vin-supply = <&vcc>;
+	};
+
 	headphones_amp: analog-amplifier@0 {
 		compatible = "simple-audio-amplifier";
 		enable-gpios = <&gpf 3 GPIO_ACTIVE_LOW>;
@@ -283,11 +294,10 @@
 					inl-supply = <&vcc>;
 				};
 
-				/* ??? */
-				LDO7 {
+				/* HDMI chip */
+				ldo7: LDO7 {
 					regulator-min-microvolt = <3300000>;
 					regulator-max-microvolt = <3300000>;
-					/*regulator-always-on;*/
 					inl-supply = <&vcc>;
 				};
 
@@ -319,12 +329,28 @@
 		};
 	};
 
+	i2c4: i2c-controller@4 {
+		compatible = "i2c-gpio";
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		sda-gpios = <&gpd 6 GPIO_ACTIVE_HIGH>;
+		scl-gpios = <&gpd 7 GPIO_ACTIVE_HIGH>;
+		clock-frequency = <100000>;
+
+		/* HDMI (ITE IT6610) chip is on this I2C bus */
+		status = "disabled";
+	};
+
 	leds {
 		compatible = "gpio-leds";
 
 		led {
+			label = "power";
 			gpios = <&gpb 30 GPIO_ACTIVE_LOW>;
 			default-state = "on";
+			panic-indicator;
+			retain-state-suspended;
 		};
 	};
 
@@ -358,7 +384,7 @@
 		};
 	};
 
-	connector {
+	usb_conn: connector {
 		compatible = "gpio-usb-b-connector", "usb-b-connector";
 		label = "mini-USB";
 		type = "mini";
@@ -381,6 +407,65 @@
 			usb_ep: endpoint {
 				remote-endpoint = <&usb_otg_ep>;
 			};
+		};
+	};
+
+	dc_charger: dc-charger {
+		compatible = "gpio-charger";
+		charger-type = "mains";
+		gpios = <&gpf 5 GPIO_ACTIVE_HIGH>;
+
+		pinctrl-names = "default";
+		pinctrl-0 = <&pins_dc_charger>;
+	};
+
+	battery: battery {
+		compatible = "simple-battery";
+		voltage-min-design-microvolt = <3400000>;
+		voltage-max-design-microvolt = <4200000>;
+	};
+
+	vdiv: voltage-divider {
+		compatible = "voltage-divider";
+		#io-channel-cells = <0>;
+
+		output-ohms = <332000>;
+		full-ohms = <1332000>;
+
+		io-channels = <&adc INGENIC_ADC_BATTERY>;
+	};
+
+	pmu {
+		compatible = "ingenic,jz4770-battery", "ingenic,jz4740-battery";
+		io-channels = <&vdiv>;
+		io-channel-names = "battery";
+		monitored-battery = <&battery>;
+
+		charger = <&act8600>;
+		power-supplies = <&act8600>, <&usb_conn>, <&dc_charger>;
+	};
+
+	joystick {
+		compatible = "adc-joystick";
+		io-channels = <&adc INGENIC_ADC_TOUCH_XP>,
+			      <&adc INGENIC_ADC_TOUCH_YP>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		axis@0 {
+			reg = <0>;
+			linux,code = <ABS_X>;
+			abs-range = <3300 0>;
+			abs-fuzz = <4>;
+			abs-flat = <200>;
+		};
+
+		axis@1 {
+			reg = <1>;
+			linux,code = <ABS_Y>;
+			abs-range = <0 3300>;
+			abs-fuzz = <4>;
+			abs-flat = <200>;
 		};
 	};
 };
@@ -430,6 +515,11 @@
 	pins_pwm4: pwm4 {
 		function = "pwm4";
 		groups = "pwm4";
+	};
+
+	pins_dc_charger: dc-charger {
+		pins = "PF5";
+		bias-pull-down;
 	};
 };
 
@@ -537,9 +627,37 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pins_lcd>;
 
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0>;
+
+			panel_output: endpoint@0 {
+				reg = <0>;
+				remote-endpoint = <&panel_input>;
+			};
+
+			/* TODO: endpoint #1 to HDMI chip */
+		};
+
+		port@8 {
+			reg = <8>;
+
+			ipu_output: endpoint {
+				remote-endpoint = <&ipu_input>;
+			};
+		};
+	};
+};
+
+&ipu {
 	port {
-		panel_output: endpoint {
-			remote-endpoint = <&panel_input>;
+		ipu_input: endpoint {
+			remote-endpoint = <&ipu_output>;
 		};
 	};
 };
