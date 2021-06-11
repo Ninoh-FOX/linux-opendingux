@@ -211,6 +211,20 @@
 		io-channel-names = "battery";
 		monitored-battery = <&battery>;
 	};
+
+	cpu_opp_table: opp-table {
+		compatible = "operating-points-v2";
+
+		opp-216000000 { opp-hz = /bits/ 64 <216000000>; };
+		opp-300000000 { opp-hz = /bits/ 64 <300000000>; };
+		opp-336000000 { opp-hz = /bits/ 64 <336000000>; };
+		opp-360000000 { opp-hz = /bits/ 64 <360000000>; };
+		opp-378000000 { opp-hz = /bits/ 64 <378000000>; };
+		opp-396000000 { opp-hz = /bits/ 64 <396000000>; };
+		opp-420000000 { opp-hz = /bits/ 64 <420000000>; };
+		opp-438000000 { opp-hz = /bits/ 64 <438000000>; };
+		opp-456000000 { opp-hz = /bits/ 64 <456000000>; };
+	};
 };
 
 &ext {
@@ -350,4 +364,11 @@
 			remote-endpoint = <&panel_input>;
 		};
 	};
+};
+
+&cpu0 {
+	operating-points-v2 = <&cpu_opp_table>;
+
+	/* We use the main PLL as the CPU clock for the cpufreq driver. */
+	clocks = <&cgu JZ4725B_CLK_PLL>;
 };
