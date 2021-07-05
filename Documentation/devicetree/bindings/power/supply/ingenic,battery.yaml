@@ -10,6 +10,9 @@ title: Ingenic JZ47xx battery bindings
 maintainers:
   - Artur Rojek <contact@artur-rojek.eu>
 
+allOf:
+  - $ref: power-supply.yaml
+
 properties:
   compatible:
     oneOf:
@@ -41,7 +44,7 @@ required:
   - io-channel-names
   - monitored-battery
 
-additionalProperties: false
+unevaluatedProperties: false
 
 examples:
   - |
