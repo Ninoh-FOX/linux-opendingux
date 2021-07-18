@@ -46,6 +46,9 @@
 /* Magic value to enable writes on jz4780 */
 #define JZ_RTC_WENR_MAGIC	0xA55A
 
+/* Value written to the scratchpad to detect power losses */
+#define JZ_RTC_SCRATCHPAD_MAGIC	0x12345678
+
 #define JZ_RTC_WAKEUP_FILTER_MASK	0x0000FFE0
 #define JZ_RTC_RESET_COUNTER_MASK	0x00000FE0
 
@@ -139,10 +142,11 @@ static int jz4740_rtc_ctrl_set_bits(struct jz4740_rtc *rtc, uint32_t mask,
 static int jz4740_rtc_read_time(struct device *dev, struct rtc_time *time)
 {
 	struct jz4740_rtc *rtc = dev_get_drvdata(dev);
-	uint32_t secs, secs2;
+	uint32_t secs, secs2, magic;
 	int timeout = 5;
 
-	if (jz4740_rtc_reg_read(rtc, JZ_REG_RTC_SCRATCHPAD) != 0x12345678)
+	magic = jz4740_rtc_reg_read(rtc, JZ_REG_RTC_SCRATCHPAD);
+	if (magic != JZ_RTC_SCRATCHPAD_MAGIC)
 		return -EINVAL;
 
 	/* If the seconds register is read while it is updated, it can contain a
@@ -174,7 +178,8 @@ static int jz4740_rtc_set_time(struct device *dev, struct rtc_time *time)
 	if (ret)
 		return ret;
 
-	return jz4740_rtc_reg_write(rtc, JZ_REG_RTC_SCRATCHPAD, 0x12345678);
+	return jz4740_rtc_reg_write(rtc, JZ_REG_RTC_SCRATCHPAD,
+				    JZ_RTC_SCRATCHPAD_MAGIC);
 }
 
 static int jz4740_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
@@ -351,6 +356,7 @@ static int jz4740_rtc_probe(struct platform_device *pdev)
 	struct jz4740_rtc *rtc;
 	unsigned long rate;
 	struct clk *clk;
+	uint32_t magic;
 	int ret, irq;
 
 	rtc = devm_kzalloc(dev, sizeof(*rtc), GFP_KERNEL);
@@ -413,6 +419,17 @@ static int jz4740_rtc_probe(struct platform_device *pdev)
 
 	/* Each 1 Hz pulse should happen after (rate) ticks */
 	jz4740_rtc_reg_write(rtc, JZ_REG_RTC_REGULATOR, rate - 1);
+
+	magic = jz4740_rtc_reg_read(rtc, JZ_REG_RTC_SCRATCHPAD);
+	if (magic != JZ_RTC_SCRATCHPAD_MAGIC) {
+		/*
+		 * If the scratchpad doesn't hold our magic value, then a
+		 * power loss occured. Reset to Epoch.
+		 */
+		struct rtc_time time = { 0 };
+
+		jz4740_rtc_set_time(dev, &time);
+	}
 
 	ret = devm_rtc_register_device(rtc->rtc);
 	if (ret)
