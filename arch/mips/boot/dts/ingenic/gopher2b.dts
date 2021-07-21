@@ -1,0 +1,120 @@
+// SPDX-License-Identifier: GPL-2.0
+/dts-v1/;
+
+#include "rs97.dts"
+#include "jz4760b.dtsi"
+
+/ {
+	compatible = "qishenglong,gopher2b", "ingenic,jz4760b";
+	model = "Gopher2b";
+
+	lcd-panel-1 {
+		compatible = "qishenglong,gopher2b-lcd-panel";
+
+		power-supply = <&vcc>;
+
+		pinctrl-names = "default";
+		pinctrl-0 = <&pins_lcd>;
+
+		port {
+			lcd_panel_input: endpoint {
+				remote-endpoint = <&panel_output>;
+			};
+		};
+	};
+};
+
+&btn_up {
+	gpios = <&gpd 23 GPIO_ACTIVE_LOW>;
+};
+
+&btn_down {
+	gpios = <&gpd 22 GPIO_ACTIVE_LOW>;
+};
+
+&btn_left {
+	gpios = <&gpa 29 GPIO_ACTIVE_LOW>;
+};
+
+&btn_right {
+	gpios = <&gpd 24 GPIO_ACTIVE_LOW>;
+};
+
+&btn_a {
+	gpios = <&gpb 23 GPIO_ACTIVE_LOW>;
+};
+
+&btn_b {
+	gpios = <&gpb 24 GPIO_ACTIVE_LOW>;
+};
+
+&btn_y {
+	gpios = <&gpd 6 GPIO_ACTIVE_LOW>;
+};
+
+&btn_x {
+	gpios = <&gpd 7 GPIO_ACTIVE_LOW>;
+};
+
+&btn_ltrig {
+	gpios = <&gpd 12 GPIO_ACTIVE_LOW>;
+};
+
+&btn_rtrig {
+	gpios = <&gpd 5 GPIO_ACTIVE_LOW>;
+};
+
+&btn_power {
+	label = "Button C";
+	gpios = <&gpb 26 GPIO_ACTIVE_LOW>;
+};
+
+&btn_star {
+	label = "Button Z";
+	gpios = <&gpd 0 GPIO_ACTIVE_LOW>;
+};
+
+&audio_amp {
+	enable-gpios = <&gpa 28 GPIO_ACTIVE_HIGH>;
+};
+
+&sound_card {
+	simple-audio-card,hp-det-gpio = <&gpe 7 GPIO_ACTIVE_HIGH>;
+};
+
+&backlight {
+	enable-gpios = <&gpe 4 GPIO_ACTIVE_HIGH>;
+};
+
+&spi {
+	status = "disabled";
+};
+
+&panel {
+	status = "disabled";
+};
+
+&usb_conn {
+	vbus-gpios = <&gpa 6 GPIO_ACTIVE_HIGH>;
+};
+
+&vdiv {
+	output-ohms = <346000>;
+	full-ohms = <1346000>;
+};
+
+&pins_lcd {
+	groups = "lcd-8bit", "lcd-16bit", "lcd-18bit", "lcd-24bit", "lcd-generic";
+};
+
+&vbus_pin {
+	pins = "PA6";
+};
+
+&panel_output {
+	remote-endpoint = <&lcd_panel_input>;
+};
+
+&panel_input {
+	remote-endpoint = <&panel_input>;
+};

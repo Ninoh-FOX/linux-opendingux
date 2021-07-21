@@ -120,70 +120,70 @@
 
 		autorepeat;
 
-		button@0 {
+		btn_up: button@0 {
 			label = "D-pad up";
 			linux,code = <KEY_UP>;
 			linux,can-disable;
 			gpios = <&gpb 25 GPIO_ACTIVE_LOW>;
 		};
 
-		button@1 {
+		btn_down: button@1 {
 			label = "D-pad down";
 			linux,code = <KEY_DOWN>;
 			linux,can-disable;
 			gpios = <&gpb 24 GPIO_ACTIVE_LOW>;
 		};
 
-		button@2 {
+		btn_left: button@2 {
 			label = "D-pad left";
 			linux,code = <KEY_LEFT>;
 			linux,can-disable;
 			gpios = <&gpd 0 GPIO_ACTIVE_LOW>;
 		};
 
-		button@3 {
+		btn_right: button@3 {
 			label = "D-pad right";
 			linux,code = <KEY_RIGHT>;
 			linux,can-disable;
 			gpios = <&gpb 26 GPIO_ACTIVE_LOW>;
 		};
 
-		button@4 {
+		btn_a: button@4 {
 			label = "Button A";
 			linux,code = <KEY_LEFTCTRL>;
 			linux,can-disable;
 			gpios = <&gpd 22 GPIO_ACTIVE_LOW>;
 		};
 
-		button@5 {
+		btn_b: button@5 {
 			label = "Button B";
 			linux,code = <KEY_LEFTALT>;
 			linux,can-disable;
 			gpios = <&gpd 23 GPIO_ACTIVE_LOW>;
 		};
 
-		button@6 {
+		btn_y: button@6 {
 			label = "Button Y";
 			linux,code = <KEY_LEFTSHIFT>;
 			linux,can-disable;
 			gpios = <&gpe 11 GPIO_ACTIVE_LOW>;
 		};
 
-		button@7 {
+		btn_x: button@7 {
 			label = "Button X";
 			linux,code = <KEY_SPACE>;
 			linux,can-disable;
 			gpios = <&gpe 7 GPIO_ACTIVE_LOW>;
 		};
 
-		button@8 {
+		btn_ltrig: button@8 {
 			label = "Left shoulder button";
 			linux,code = <KEY_TAB>;
 			linux,can-disable;
 			gpios = <&gpb 23 GPIO_ACTIVE_LOW>;
 		};
 
-		button@9 {
+		btn_rtrig: button@9 {
 			label = "Right shoulder button";
 			linux,code = <KEY_BACKSPACE>;
 			linux,can-disable;
@@ -204,7 +204,7 @@
 			gpios = <&gpd 17 GPIO_ACTIVE_HIGH>;
 		};
 
-		button@12 {
+		btn_power: button@12 {
 			label = "Power button";
 			linux,code = <KEY_POWER>;
 			linux,can-disable;
@@ -212,7 +212,7 @@
 			wakeup-source;
 		};
 
-		button@13 {
+		btn_star: button@13 {
 			label = "Star button";
 			linux,code = <KEY_HOME>;
 			linux,can-disable;
@@ -221,7 +221,7 @@
 		};
 	};
 
-	spi {
+	spi: spi {
 		compatible = "spi-gpio";
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -345,7 +345,7 @@
 			groups = "otg-vbus";
 		};
 
-		vbus-pin {
+		vbus_pin: vbus-pin {
 			pins = "PD7";
 			bias-disable;
 		};
