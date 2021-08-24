@@ -1,0 +1,157 @@
+// SPDX-License-Identifier: GPL-2.0
+/dts-v1/;
+
+#include "rs90.dts"
+
+/ {
+	compatible = "ylm,rg99", "ingenic,jz4725b";
+	model = "RG-99";
+
+	charger: charger {
+	     compatible = "gpio-charger";
+	     charger-type = "usb-sdp";
+	     gpios = <&gpc 10 GPIO_ACTIVE_HIGH>;
+	};
+
+	spi {
+		compatible = "spi-gpio";
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		sck-gpios = <&gpd 23 GPIO_ACTIVE_HIGH>;
+		mosi-gpios = <&gpd 22 GPIO_ACTIVE_HIGH>;
+		cs-gpios = <&gpd 10 GPIO_ACTIVE_HIGH>;
+		num-chipselects = <1>;
+
+		panel@0 {
+			compatible = "abt,y030xx067a";
+			reg = <0>;
+
+			spi-max-frequency = <10000000>;
+			spi-3wire;
+
+			reset-gpios = <&gpd 25 GPIO_ACTIVE_LOW>;
+
+			backlight = <&backlight>;
+			power-supply = <&vcc>;
+
+			port {
+				abt_input: endpoint {
+					remote-endpoint = <&panel_output>;
+				};
+			};
+		};
+	};
+};
+
+&key_0 {
+	gpios = <&gpd 8 GPIO_ACTIVE_LOW>;
+};
+
+&key_1 {
+	gpios = <&gpd 9 GPIO_ACTIVE_LOW>;
+};
+
+&key_2 {
+	gpios = <&gpd 11 GPIO_ACTIVE_LOW>;
+};
+
+&key_3 {
+	gpios = <&gpc 20 GPIO_ACTIVE_LOW>;
+};
+
+&key_4 {
+	gpios = <&gpd 24 GPIO_ACTIVE_LOW>;
+};
+
+&key_5 {
+	gpios = <&gpd 16 GPIO_ACTIVE_LOW>;
+};
+
+&key_6 {
+	gpios = <&gpd 13 GPIO_ACTIVE_LOW>;
+};
+
+&key_7 {
+	gpios = <&gpc 31 GPIO_ACTIVE_LOW>;
+};
+
+&gpio_keys {
+	key@8 {
+		label = "Left shoulder button";
+		linux,code = <KEY_TAB>;
+		gpios = <&gpd 14 GPIO_ACTIVE_LOW>;
+		debounce-interval = <10>;
+	};
+
+	key@9 {
+		label = "Button X";
+		linux,code = <KEY_SPACE>;
+		gpios = <&gpd 17 GPIO_ACTIVE_LOW>;
+	};
+
+	key@10 {
+		label = "Button Y";
+		linux,code = <KEY_LEFTSHIFT>;
+		gpios = <&gpd 15 GPIO_ACTIVE_LOW>;
+	};
+
+	key@11 {
+		label = "Select button";
+		linux,code = <KEY_ESC>;
+		gpios = <&gpc 30 GPIO_ACTIVE_LOW>;
+	};
+
+	key@12 {
+		label = "Menu1 button";
+		linux,code = <KEY_PAGEUP>;
+		gpios = <&gpd 12 GPIO_ACTIVE_LOW>;
+		debounce-interval = <10>;
+	};
+
+	key@13 {
+		label = "Menu2 button";
+		linux,code = <KEY_PAGEDOWN>;
+		gpios = <&gpb 31 GPIO_ACTIVE_LOW>;
+		debounce-interval = <10>;
+	};
+};
+
+&gpio_keys_1 {
+	status = "disabled";
+};
+
+&sound_card {
+	/* TODO: What's the headphones detection GPIO? */
+	simple-audio-card,hp-det-gpio;
+};
+
+&panel {
+	status = "disabled";
+};
+
+/* Make RS90 panel port a dummy to avoid DTC complaints */
+&panel_input {
+	remote-endpoint = <&panel_input>;
+};
+
+&panel_output {
+	remote-endpoint = <&abt_input>;
+};
+
+&pmu {
+	power-supplies = <&charger>;
+};
+
+&mmc1 {
+	cd-gpios = <&gpd 21 GPIO_ACTIVE_LOW>;
+};
+
+&pins_lcd {
+	groups = "lcd-8bit";
+};
+
+&vmem {
+	/* Reserve 2 MiB of VRAM */
+	reg = <0x1e00000 0x200000>;
+};

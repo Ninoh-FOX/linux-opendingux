@@ -8,6 +8,14 @@ menuconfig HWSPINLOCK
 
 if HWSPINLOCK
 
+config HWSPINLOCK_INGENIC
+	tristate "Ingenic VPU Hardware Spinlock device"
+	depends on MACH_INGENIC || COMPILE_TEST
+	help
+	  Say y here to support the Ingenic VPU Hardware Spinlock device.
+
+	  If unsure, say N.
+
 config HWSPINLOCK_OMAP
 	tristate "OMAP Hardware Spinlock device"
 	depends on ARCH_OMAP4 || SOC_OMAP5 || SOC_DRA7XX || SOC_AM33XX || SOC_AM43XX || ARCH_K3 || COMPILE_TEST

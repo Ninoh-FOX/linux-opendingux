@@ -767,6 +767,17 @@ struct clk *clk_get_parent(struct clk *clk);
 struct clk *clk_get_sys(const char *dev_id, const char *con_id);
 
 /**
+ * clk_get_first_to_set_rate - get a pointer to the clock that will
+ *   effectively modify its rate when clk_set_rate(clk) is called
+ *   (might be clk itself, or any ancestor)
+ * @clk: clock source
+ *
+ * Returns struct clk corresponding to the matched clock source, or
+ * NULL on error.
+ */
+struct clk *clk_get_first_to_set_rate(struct clk *clk);
+
+/**
  * clk_save_context - save clock context for poweroff
  *
  * Saves the context of the clock register for powerstates in which the
@@ -924,6 +935,11 @@ static inline int clk_set_parent(struct clk *clk, struct clk *parent)
 }
 
 static inline struct clk *clk_get_parent(struct clk *clk)
+{
+	return NULL;
+}
+
+static inline struct clk *clk_get_first_to_set_rate(struct clk *clk)
 {
 	return NULL;
 }

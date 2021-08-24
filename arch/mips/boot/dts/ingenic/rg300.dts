@@ -1,0 +1,15 @@
+// SPDX-License-Identifier: GPL-2.0
+/dts-v1/;
+
+/* RG-300 is a RS-97 with a JZ4760B and a different panel */
+#include "rs97.dts"
+#include "jz4760b.dtsi"
+
+/ {
+	compatible = "ylm,rg300", "ingenic,jz4760b";
+	model = "RG-300";
+};
+
+&panel {
+	compatible = "abt,y030xx067a";
+};

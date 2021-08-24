@@ -50,62 +50,62 @@
 		power-supply = <&vcc>;
 	};
 
-	keys@0 {
+	gpio_keys: keys@0 {
 		compatible = "gpio-keys";
 		#address-cells = <1>;
 		#size-cells = <0>;
 
-		key@0 {
+		key_0: key@0 {
 			label = "D-pad up";
 			linux,code = <KEY_UP>;
 			gpios = <&gpc 10 GPIO_ACTIVE_LOW>;
 		};
 
-		key@1 {
+		key_1: key@1 {
 			label = "D-pad down";
 			linux,code = <KEY_DOWN>;
 			gpios = <&gpc 11 GPIO_ACTIVE_LOW>;
 		};
 
-		key@2 {
+		key_2: key@2 {
 			label = "D-pad left";
 			linux,code = <KEY_LEFT>;
 			gpios = <&gpb 31 GPIO_ACTIVE_LOW>;
 		};
 
-		key@3 {
+		key_3: key@3 {
 			label = "D-pad right";
 			linux,code = <KEY_RIGHT>;
 			gpios = <&gpd 21 GPIO_ACTIVE_LOW>;
 		};
 
-		key@4 {
+		key_4: key@4 {
 			label = "Button A";
 			linux,code = <KEY_LEFTCTRL>;
 			gpios = <&gpc 31 GPIO_ACTIVE_LOW>;
 		};
 
-		key@5 {
+		key_5: key@5 {
 			label = "Button B";
 			linux,code = <KEY_LEFTALT>;
 			gpios = <&gpc 30 GPIO_ACTIVE_LOW>;
 		};
 
-		key@6 {
+		key_6: key@6 {
 			label = "Right shoulder button";
 			linux,code = <KEY_BACKSPACE>;
 			gpios = <&gpc 12 GPIO_ACTIVE_LOW>;
 			debounce-interval = <10>;
 		};
 
-		key@7 {
+		key_7: key@7 {
 			label = "Start button";
 			linux,code = <KEY_ENTER>;
 			gpios = <&gpd 17 GPIO_ACTIVE_LOW>;
 		};
 	};
 
-	keys@1 {
+	gpio_keys_1: keys@1 {
 		compatible = "adc-keys";
 		io-channels = <&adc INGENIC_ADC_AUX>;
 		io-channel-names = "buttons";
@@ -132,7 +132,7 @@
 		VCC-supply = <&vcc>;
 	};
 
-	sound {
+	sound_card: sound {
 		compatible = "simple-audio-card";
 
 		simple-audio-card,name = "rs90-audio";
@@ -175,7 +175,7 @@
 		vcc-supply = <&vcc>;
 	};
 
-	panel {
+	panel: panel {
 		compatible = "sharp,ls020b1dd01d";
 
 		backlight = <&backlight>;
@@ -186,6 +186,44 @@
 				remote-endpoint = <&panel_output>;
 			};
 		};
+	};
+
+	battery: battery {
+		compatible = "simple-battery";
+		voltage-min-design-microvolt = <3692000>;
+		voltage-max-design-microvolt = <3900000>;
+		charge-full-design-microamp-hours = <1020000>;
+	};
+
+	resistor: resistor {
+		compatible = "voltage-divider";
+		#io-channel-cells = <0>;
+
+		output-ohms = <1125>;
+		full-ohms = <3900>;
+
+		io-channels = <&adc INGENIC_ADC_BATTERY>;
+	};
+
+	pmu: pmu {
+		compatible = "ingenic,jz4725b-battery", "ingenic,jz4740-battery";
+		io-channels = <&resistor>;
+		io-channel-names = "battery";
+		monitored-battery = <&battery>;
+	};
+
+	cpu_opp_table: opp-table {
+		compatible = "operating-points-v2";
+
+		opp-216000000 { opp-hz = /bits/ 64 <216000000>; };
+		opp-300000000 { opp-hz = /bits/ 64 <300000000>; };
+		opp-336000000 { opp-hz = /bits/ 64 <336000000>; };
+		opp-360000000 { opp-hz = /bits/ 64 <360000000>; };
+		opp-378000000 { opp-hz = /bits/ 64 <378000000>; };
+		opp-396000000 { opp-hz = /bits/ 64 <396000000>; };
+		opp-420000000 { opp-hz = /bits/ 64 <420000000>; };
+		opp-438000000 { opp-hz = /bits/ 64 <438000000>; };
+		opp-456000000 { opp-hz = /bits/ 64 <456000000>; };
 	};
 };
 
@@ -326,4 +364,11 @@
 			remote-endpoint = <&panel_input>;
 		};
 	};
+};
+
+&cpu0 {
+	operating-points-v2 = <&cpu_opp_table>;
+
+	/* We use the main PLL as the CPU clock for the cpufreq driver. */
+	clocks = <&cgu JZ4725B_CLK_PLL>;
 };

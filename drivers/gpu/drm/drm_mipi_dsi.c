@@ -281,6 +281,9 @@ int mipi_dsi_host_register(struct mipi_dsi_host *host)
 {
 	struct device_node *node;
 
+	if (!host->bus_types)
+		host->bus_types = MIPI_DCS_BUS_TYPE_DSI;
+
 	for_each_available_child_of_node(host->dev->of_node, node) {
 		/* skip nodes without reg property */
 		if (!of_find_property(node, "reg", NULL))
@@ -322,6 +325,12 @@ EXPORT_SYMBOL(mipi_dsi_host_unregister);
 int mipi_dsi_attach(struct mipi_dsi_device *dsi)
 {
 	const struct mipi_dsi_host_ops *ops = dsi->host->ops;
+
+	if (!dsi->bus_type)
+		dsi->bus_type = MIPI_DCS_BUS_TYPE_DSI;
+
+	if (!(dsi->bus_type & dsi->host->bus_types))
+		return -EINVAL;
 
 	if (!ops || !ops->attach)
 		return -ENOSYS;

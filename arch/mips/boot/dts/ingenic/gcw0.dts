@@ -48,6 +48,17 @@
 		vin-supply = <&vcc>;
 	};
 
+	usb_vbus: regulator@2 {
+		compatible = "regulator-fixed";
+		regulator-name = "USB Power";
+		gpio = <&gpf 10 0>;
+		regulator-always-on; /* always ON for now */
+
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		vin-supply = <&vcc>;
+	};
+
 	headphones_amp: analog-amplifier@0 {
 		compatible = "simple-audio-amplifier";
 		enable-gpios = <&gpf 3 GPIO_ACTIVE_LOW>;
@@ -65,7 +76,7 @@
 		sound-name-prefix = "Speaker Amp";
 	};
 
-	sound {
+	sound_card: sound {
 		compatible = "simple-audio-card";
 
 		simple-audio-card,name = "gcw0-audio";
@@ -124,11 +135,13 @@
 				     144 160 176 192 208 224 240 255>;
 		default-brightness-level = <12>;
 
-		pinctrl-names = "default";
-		pinctrl-0 = <&pins_pwm1>;
+		pinctrl-names = "init", "sleep", "default";
+		pinctrl-0 = <&pins_pwm1_sleep>;
+		pinctrl-1 = <&pins_pwm1_sleep>;
+		pinctrl-2 = <&pins_pwm1>;
 	};
 
-	gpio-keys {
+	gpio_keys: gpio-keys {
 		compatible = "gpio-keys";
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -177,28 +190,28 @@
 			gpios = <&gpe 20 GPIO_ACTIVE_LOW>;
 		};
 
-		button@6 {
+		btn6: button@6 {
 			label = "Button Y";
 			linux,code = <KEY_SPACE>;
 			linux,can-disable;
 			gpios = <&gpe 27 GPIO_ACTIVE_LOW>;
 		};
 
-		button@7 {
+		btn7: button@7 {
 			label = "Button X";
 			linux,code = <KEY_LEFTSHIFT>;
 			linux,can-disable;
 			gpios = <&gpe 28 GPIO_ACTIVE_LOW>;
 		};
 
-		button@8 {
+		btn8: button@8 {
 			label = "Left shoulder button";
 			linux,code = <KEY_TAB>;
 			linux,can-disable;
 			gpios = <&gpb 20 GPIO_ACTIVE_LOW>;
 		};
 
-		button@9 {
+		btn9: button@9 {
 			label = "Right shoulder button";
 			linux,code = <KEY_BACKSPACE>;
 			linux,can-disable;
@@ -283,11 +296,10 @@
 					inl-supply = <&vcc>;
 				};
 
-				/* ??? */
-				LDO7 {
+				/* HDMI chip */
+				ldo7: LDO7 {
 					regulator-min-microvolt = <3300000>;
 					regulator-max-microvolt = <3300000>;
-					/*regulator-always-on;*/
 					inl-supply = <&vcc>;
 				};
 
@@ -319,12 +331,47 @@
 		};
 	};
 
+	i2c4: i2c-controller@4 {
+		compatible = "i2c-gpio";
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		sda-gpios = <&gpd 6 GPIO_ACTIVE_HIGH>;
+		scl-gpios = <&gpd 7 GPIO_ACTIVE_HIGH>;
+		clock-frequency = <100000>;
+
+		it6610: hdmi@4c {
+			compatible = "ite,it6610";
+			reg = <0x4c>;
+
+			interrupt-parent = <&gpf>;
+			interrupts = <12 0>;
+			interrupt-names = "irq";
+
+			reset-gpios = <&gpe 6 GPIO_ACTIVE_LOW>;
+
+			pinctrl-names = "default";
+			pinctrl-0 = <&pins_it6610>;
+
+			power-supply = <&ldo7>;
+
+			port {
+				hdmi_input: endpoint {
+					remote-endpoint = <&hdmi_output>;
+				};
+			};
+		};
+	};
+
 	leds {
 		compatible = "gpio-leds";
 
 		led {
+			label = "power";
 			gpios = <&gpb 30 GPIO_ACTIVE_LOW>;
 			default-state = "on";
+			panic-indicator;
+			retain-state-suspended;
 		};
 	};
 
@@ -338,7 +385,7 @@
 		cs-gpios = <&gpe 16 GPIO_ACTIVE_HIGH>;
 		num-chipselects = <1>;
 
-		nt39016@0 {
+		panel: nt39016@0 {
 			compatible = "kingdisplay,kd035g6-54nt";
 			reg = <0>;
 
@@ -358,7 +405,7 @@
 		};
 	};
 
-	connector {
+	usb_conn: connector {
 		compatible = "gpio-usb-b-connector", "usb-b-connector";
 		label = "mini-USB";
 		type = "mini";
@@ -381,6 +428,65 @@
 			usb_ep: endpoint {
 				remote-endpoint = <&usb_otg_ep>;
 			};
+		};
+	};
+
+	dc_charger: dc-charger {
+		compatible = "gpio-charger";
+		charger-type = "mains";
+		gpios = <&gpf 5 GPIO_ACTIVE_HIGH>;
+
+		pinctrl-names = "default";
+		pinctrl-0 = <&pins_dc_charger>;
+	};
+
+	battery: battery {
+		compatible = "simple-battery";
+		voltage-min-design-microvolt = <3400000>;
+		voltage-max-design-microvolt = <4200000>;
+	};
+
+	vdiv: voltage-divider {
+		compatible = "voltage-divider";
+		#io-channel-cells = <0>;
+
+		output-ohms = <332000>;
+		full-ohms = <1332000>;
+
+		io-channels = <&adc INGENIC_ADC_BATTERY>;
+	};
+
+	pmu: pmu {
+		compatible = "ingenic,jz4770-battery", "ingenic,jz4740-battery";
+		io-channels = <&vdiv>;
+		io-channel-names = "battery";
+		monitored-battery = <&battery>;
+
+		charger = <&act8600>;
+		power-supplies = <&act8600>, <&usb_conn>, <&dc_charger>;
+	};
+
+	joystick: joystick {
+		compatible = "adc-joystick";
+		io-channels = <&adc INGENIC_ADC_TOUCH_XP>,
+			      <&adc INGENIC_ADC_TOUCH_YP>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		axis@0 {
+			reg = <0>;
+			linux,code = <ABS_X>;
+			abs-range = <3300 0>;
+			abs-fuzz = <4>;
+			abs-flat = <200>;
+		};
+
+		axis@1 {
+			reg = <1>;
+			linux,code = <ABS_Y>;
+			abs-range = <0 3300>;
+			abs-fuzz = <4>;
+			abs-flat = <200>;
 		};
 	};
 };
@@ -410,6 +516,21 @@
 		groups = "mmc1-1bit-d", "mmc1-4bit-d";
 	};
 
+	pins_i2c0: i2c0 {
+		function = "i2c0";
+		groups = "i2c0-data";
+	};
+
+	pins_i2c1: i2c1 {
+		function = "i2c1";
+		groups = "i2c1-data";
+	};
+
+	pins_it6610: it6610 {
+		pins = "PF12";
+		bias-pull-up;
+	};
+
 	pins_otg: otg {
 		otg-vbus-pin {
 			function = "otg";
@@ -422,14 +543,26 @@
 		};
 	};
 
-	pins_pwm1: pwm1 {
-		function = "pwm1";
-		groups = "pwm1";
+	pwm1 {
+		pins_pwm1_sleep: pwm1-sleep {
+			pins = "PE1";
+			output-low;
+		};
+
+		pins_pwm1: pwm1-default {
+			function = "pwm1";
+			groups = "pwm1";
+		};
 	};
 
 	pins_pwm4: pwm4 {
 		function = "pwm4";
 		groups = "pwm4";
+	};
+
+	pins_dc_charger: dc-charger {
+		pins = "PF5";
+		bias-pull-down;
 	};
 };
 
@@ -537,9 +670,74 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pins_lcd>;
 
-	port {
-		panel_output: endpoint {
-			remote-endpoint = <&panel_input>;
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0>;
+
+			panel_output: endpoint@0 {
+				reg = <0>;
+				remote-endpoint = <&panel_input>;
+			};
+
+			hdmi_output: endpoint@1 {
+				reg = <1>;
+				remote-endpoint = <&hdmi_input>;
+			};
 		};
+
+		port@8 {
+			reg = <8>;
+
+			ipu_output: endpoint {
+				remote-endpoint = <&ipu_input>;
+			};
+		};
+	};
+};
+
+&ipu {
+	port {
+		ipu_input: endpoint {
+			remote-endpoint = <&ipu_output>;
+		};
+	};
+};
+
+&i2c0 {
+	status = "okay";
+
+	pinctrl-names = "default";
+	pinctrl-0 = <&pins_i2c0>;
+
+	clock-frequency = <400000>; /* 400 kHz */
+
+	radio: radio@11 {
+		compatible = "rda,rda5807";
+		reg = <0x11>;
+
+		rda,lnan;
+		rda,lnap;
+		rda,analog-out;
+
+		power-supply = <&ldo6>;
+	};
+};
+
+&i2c1 {
+	status = "okay";
+
+	pinctrl-names = "default";
+	pinctrl-0 = <&pins_i2c1>;
+
+	clock-frequency = <100000>; /* 100 kHz */
+
+	accelerometer@15 {
+		compatible = "memsic,mxc6225";
+		reg = <0x15>;
 	};
 };

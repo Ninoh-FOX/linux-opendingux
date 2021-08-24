@@ -1,0 +1,478 @@
+// SPDX-License-Identifier: GPL-2.0
+/dts-v1/;
+
+#include "jz4760.dtsi"
+#include <dt-bindings/clock/ingenic,tcu.h>
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/iio/adc/ingenic,adc.h>
+#include <dt-bindings/input/input.h>
+
+/ {
+	compatible = "ylm,rs97", "ingenic,jz4760";
+	model = "RS-97";
+
+	aliases {
+		serial0 = &uart0;
+		serial1 = &uart1;
+		serial2 = &uart2;
+		serial3 = &uart3;
+	};
+
+	memory: memory {
+		device_type = "memory";
+		reg = <0x0 0x8000000>;
+	};
+
+	chosen {
+		stdout-path = "serial1:57600n8";
+	};
+
+	vcc: regulator@0 {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc";
+
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		regulator-always-on;
+	};
+
+	lcd_power: regulator@1 {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc";
+		gpio = <&gpc 9 0>;
+		enable-active-high;
+
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+	};
+
+	mmc2_power: regulator@2 {
+		compatible = "regulator-fixed";
+		regulator-name = "mmc2_vcc";
+		gpio = <&gpf 3 0>;
+
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		vin-supply = <&vcc>;
+	};
+
+	audio_amp: analog-amplifier {
+		compatible = "simple-audio-amplifier";
+		enable-gpios = <&gpe 9 0>;
+		enable-delay-ms = <50>;
+
+		VCC-supply = <&vcc>;
+	};
+
+	sound_card: sound {
+		compatible = "simple-audio-card";
+
+		simple-audio-card,name = "lepus-audio";
+		simple-audio-card,format = "i2s";
+
+		simple-audio-card,widgets =
+			"Speaker", "Speaker",
+			"Headphone", "Headphones";
+		simple-audio-card,routing =
+			"Headphones", "LHPOUT",
+			"Headphones", "RHPOUT",
+			"INL", "LHPOUT",
+			"INR", "RHPOUT",
+			"Speaker", "OUTL",
+			"Speaker", "OUTR";
+		simple-audio-card,pin-switches = "Speaker";
+
+		simple-audio-card,hp-det-gpio = <&gpd 6 GPIO_ACTIVE_LOW>;
+		simple-audio-card,aux-devs = <&audio_amp>;
+
+		simple-audio-card,bitclock-master = <&dai_codec>;
+		simple-audio-card,frame-master = <&dai_codec>;
+
+		dai_cpu: simple-audio-card,cpu {
+			sound-dai = <&aic>;
+		};
+
+		dai_codec: simple-audio-card,codec {
+			sound-dai = <&codec>;
+		};
+	};
+
+	backlight: backlight {
+		compatible = "pwm-backlight";
+		pwms = <&pwm 1 40000 0>;
+		power-supply = <&vcc>;
+
+		brightness-levels = <0 16 32 48 64 80 96 112 128
+				     144 160 176 192 208 224 240 255>;
+		default-brightness-level = <12>;
+
+		pinctrl-names = "init", "sleep", "default";
+		pinctrl-0 = <&pins_pwm1_sleep>;
+		pinctrl-1 = <&pins_pwm1_sleep>;
+		pinctrl-2 = <&pins_pwm1>;
+	};
+
+	gpio_keys: gpio-keys {
+		compatible = "gpio-keys";
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		autorepeat;
+
+		btn_up: button@0 {
+			label = "D-pad up";
+			linux,code = <KEY_UP>;
+			linux,can-disable;
+			gpios = <&gpb 25 GPIO_ACTIVE_LOW>;
+		};
+
+		btn_down: button@1 {
+			label = "D-pad down";
+			linux,code = <KEY_DOWN>;
+			linux,can-disable;
+			gpios = <&gpb 24 GPIO_ACTIVE_LOW>;
+		};
+
+		btn_left: button@2 {
+			label = "D-pad left";
+			linux,code = <KEY_LEFT>;
+			linux,can-disable;
+			gpios = <&gpd 0 GPIO_ACTIVE_LOW>;
+		};
+
+		btn_right: button@3 {
+			label = "D-pad right";
+			linux,code = <KEY_RIGHT>;
+			linux,can-disable;
+			gpios = <&gpb 26 GPIO_ACTIVE_LOW>;
+		};
+
+		btn_a: button@4 {
+			label = "Button A";
+			linux,code = <KEY_LEFTCTRL>;
+			linux,can-disable;
+			gpios = <&gpd 22 GPIO_ACTIVE_LOW>;
+		};
+
+		btn_b: button@5 {
+			label = "Button B";
+			linux,code = <KEY_LEFTALT>;
+			linux,can-disable;
+			gpios = <&gpd 23 GPIO_ACTIVE_LOW>;
+		};
+
+		btn_y: button@6 {
+			label = "Button Y";
+			linux,code = <KEY_LEFTSHIFT>;
+			linux,can-disable;
+			gpios = <&gpe 11 GPIO_ACTIVE_LOW>;
+		};
+
+		btn_x: button@7 {
+			label = "Button X";
+			linux,code = <KEY_SPACE>;
+			linux,can-disable;
+			gpios = <&gpe 7 GPIO_ACTIVE_LOW>;
+		};
+
+		btn_ltrig: button@8 {
+			label = "Left shoulder button";
+			linux,code = <KEY_TAB>;
+			linux,can-disable;
+			gpios = <&gpb 23 GPIO_ACTIVE_LOW>;
+		};
+
+		btn_rtrig: button@9 {
+			label = "Right shoulder button";
+			linux,code = <KEY_BACKSPACE>;
+			linux,can-disable;
+			gpios = <&gpd 24 GPIO_ACTIVE_LOW>;
+		};
+
+		button@10 {
+			label = "Start button";
+			linux,code = <KEY_ENTER>;
+			linux,can-disable;
+			gpios = <&gpd 18 GPIO_ACTIVE_HIGH>;
+		};
+
+		button@11 {
+			label = "Select button";
+			linux,code = <KEY_ESC>;
+			linux,can-disable;
+			gpios = <&gpd 17 GPIO_ACTIVE_HIGH>;
+		};
+
+		btn_power: button@12 {
+			label = "Power button";
+			linux,code = <KEY_POWER>;
+			linux,can-disable;
+			gpios = <&gpa 30 GPIO_ACTIVE_LOW>;
+			wakeup-source;
+		};
+
+		btn_star: button@13 {
+			label = "Star button";
+			linux,code = <KEY_HOME>;
+			linux,can-disable;
+			gpios = <&gpd 21 GPIO_ACTIVE_LOW>;
+			wakeup-source;
+		};
+	};
+
+	spi: spi {
+		compatible = "spi-gpio";
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		sck-gpios = <&gpd 11 GPIO_ACTIVE_HIGH>;
+		mosi-gpios = <&gpe 2 GPIO_ACTIVE_HIGH>;
+		cs-gpios = <&gpe 0 GPIO_ACTIVE_LOW>;
+		num-chipselects = <1>;
+
+		panel: lcd-panel@0 {
+			compatible = "auo,a030jtn01";
+			reg = <0>;
+
+			spi-max-frequency = <10000000>;
+			spi-cpol;
+			spi-cpha;
+			spi-3wire;
+
+			reset-gpios = <&gpe 4 GPIO_ACTIVE_LOW>;
+			power-supply = <&lcd_power>;
+
+			backlight = <&backlight>;
+
+			pinctrl-names = "default";
+			pinctrl-0 = <&pins_lcd>;
+
+			port {
+				panel_input: endpoint {
+					remote-endpoint = <&panel_output>;
+				};
+			};
+		};
+	};
+
+	usb_conn: connector {
+		compatible = "gpio-usb-b-connector", "usb-b-connector";
+		label = "mini-USB";
+		type = "mini";
+
+		vbus-gpios = <&gpd 7 GPIO_ACTIVE_HIGH>;
+		//id-gpios = <&gpa 11 GPIO_ACTIVE_HIGH>;
+		//vbus-supply = <&otg_vbus>;
+
+		pinctrl-names = "default";
+		pinctrl-0 = <&pins_otg>;
+
+		port {
+			usb_ep: endpoint {
+				remote-endpoint = <&usb_otg_ep>;
+			};
+		};
+	};
+
+	battery: battery {
+		compatible = "simple-battery";
+		voltage-min-design-microvolt = <3400000>;
+		voltage-max-design-microvolt = <4200000>;
+	};
+
+	vdiv: voltage-divider {
+		compatible = "voltage-divider";
+		#io-channel-cells = <0>;
+
+		output-ohms = <332000>;
+		full-ohms = <1332000>;
+
+		io-channels = <&adc INGENIC_ADC_BATTERY>;
+	};
+
+	pmu: pmu {
+		compatible = "ingenic,jz4760-battery", "ingenic,jz4740-battery";
+		io-channels = <&vdiv>;
+		io-channel-names = "battery";
+		monitored-battery = <&battery>;
+
+		charger = <&usb_conn>;
+		power-supplies = <&usb_conn>;
+	};
+};
+
+&ext {
+	clock-frequency = <12000000>;
+};
+
+&pinctrl {
+	pins_lcd: lcd {
+		function = "lcd";
+		groups = "lcd-8bit";
+	};
+
+	pins_uart1: uart1 {
+		function = "uart1";
+		groups = "uart1-data";
+	};
+
+	pins_mmc0: mmc0 {
+		function = "mmc0";
+		groups = "mmc0-1bit-a", "mmc0-4bit-a";
+	};
+
+	pins_mmc2: mmc2 {
+		function = "mmc2";
+		groups = "mmc2-1bit-e", "mmc2-4bit-e";
+	};
+
+	pwm1 {
+		pins_pwm1_sleep: pwm1-sleep {
+			pins = "PE1";
+			output-low;
+		};
+
+		pins_pwm1: pwm1-default {
+			function = "pwm1";
+			groups = "pwm1";
+		};
+	};
+
+	pins_otg: otg {
+		otg-vbus-pin {
+			function = "otg";
+			groups = "otg-vbus";
+		};
+
+		vbus_pin: vbus-pin {
+			pins = "PD7";
+			bias-disable;
+		};
+	};
+};
+
+&uart1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pins_uart1>;
+
+	status = "okay";
+};
+
+&cgu {
+	/*
+	 * Put high-speed peripherals under PLL1, such that we can change the
+	 * PLL0 frequency on demand without having to suspend peripherals.
+	 * We use a rate of 432 MHz, which is the least common multiple of
+	 * 27 MHz (required by TV encoder) and 48 MHz (required by USB host).
+	 * Use the 32 kHz oscillator as the parent of the RTC for a higher
+	 * precision.
+	 */
+	assigned-clocks =
+		<&cgu JZ4760_CLK_PLL1>,
+		<&cgu JZ4760_CLK_PLL0_HALF>,
+		<&cgu JZ4760_CLK_MMC_MUX>,
+		<&cgu JZ4760_CLK_RTC>,
+		<&cgu JZ4760_CLK_UHC>,
+		<&cgu JZ4760_CLK_LPCLK_DIV>;
+	assigned-clock-parents =
+		<0>,
+		<0>,
+		<&cgu JZ4760_CLK_PLL0_HALF>,
+		<&cgu JZ4760_CLK_OSC32K>,
+		<&cgu JZ4760_CLK_PLL1>,
+		<&cgu JZ4760_CLK_PLL1>;
+	assigned-clock-rates =
+		<432000000>, <600000000>, <50000000>;
+};
+
+&tcu {
+	/*
+	 * 750 kHz for the system timer and clocksource, 12 MHz for the OST,
+	 * and use RTC as the parent for the watchdog clock
+	 */
+	assigned-clocks = <&tcu TCU_CLK_TIMER0>, <&tcu TCU_CLK_TIMER2>,
+			  <&tcu TCU_CLK_OST>, <&tcu TCU_CLK_WDT>;
+	assigned-clock-parents = <0>, <0>, <0>, <&cgu JZ4760_CLK_RTC>;
+	assigned-clock-rates = <750000>, <750000>, <12000000>;
+
+	/* PWM1 is in use, so use channel #2 for the clocksource */
+	ingenic,pwm-channels-mask = <0xfa>;
+};
+
+&usb_otg {
+	port {
+		usb_otg_ep: endpoint {
+			remote-endpoint = <&usb_ep>;
+		};
+	};
+};
+
+&otg_phy {
+	vcc-supply = <&vcc>;
+};
+
+&rtc {
+	clocks = <&cgu JZ4760_CLK_RTC>;
+	clock-names = "rtc";
+
+	system-power-controller;
+
+	ingenic,reset-pin-assert-time-ms = <125>;
+	ingenic,min-wakeup-pin-assert-time-ms = <500>;
+};
+
+&mmc0 {
+	status = "okay";
+
+	bus-width = <4>;
+	max-frequency = <50000000>;
+	vmmc-supply = <&vcc>;
+	non-removable;
+
+	pinctrl-names = "default";
+	pinctrl-0 = <&pins_mmc0>;
+};
+
+&mmc2 {
+	status = "okay";
+
+	bus-width = <4>;
+	max-frequency = <50000000>;
+	cd-gpios = <&gpf 0 GPIO_ACTIVE_LOW>;
+	vmmc-supply = <&mmc2_power>;
+
+	pinctrl-names = "default";
+	pinctrl-0 = <&pins_mmc2>;
+};
+
+&lcd {
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+
+			panel_output: endpoint {
+				remote-endpoint = <&panel_input>;
+			};
+		};
+
+		port@8 {
+			reg = <8>;
+
+			ipu_output: endpoint {
+				remote-endpoint = <&ipu_input>;
+			};
+		};
+	};
+};
+
+&ipu {
+	port {
+		ipu_input: endpoint {
+			remote-endpoint = <&ipu_output>;
+		};
+	};
+};

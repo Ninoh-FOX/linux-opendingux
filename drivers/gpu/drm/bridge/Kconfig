@@ -74,6 +74,14 @@ config DRM_DISPLAY_CONNECTOR
 	  on ARM-based platforms. Saying Y here when this driver is not needed
 	  will not cause any issue.
 
+config DRM_ITE_IT6610
+	tristate "ITE IT6610 HDMI bridge"
+	depends on OF
+	select DRM_KMS_HELPER
+	select REGMAP
+	help
+	  ITE IT6610 HDMI chip driver.
+
 config DRM_LONTIUM_LT8912B
 	tristate "Lontium LT8912B DSI/HDMI bridge"
 	depends on OF

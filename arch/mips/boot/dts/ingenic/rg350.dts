@@ -1,0 +1,37 @@
+// SPDX-License-Identifier: GPL-2.0
+/dts-v1/;
+
+#include "rg350m.dts"
+
+/ {
+	compatible = "ylm,rg350", "ingenic,jz4770";
+	model = "Anbernic RG-350";
+
+	panel {
+		compatible = "frida,frd350h54004";
+
+		reset-gpios = <&gpe 2 GPIO_ACTIVE_LOW>;
+
+		backlight = <&backlight>;
+		power-supply = <&vcc>;
+
+		port {
+			frida_input: endpoint {
+				remote-endpoint = <&panel_output>;
+			};
+		};
+	};
+};
+
+&panel {
+	status = "disabled";
+};
+
+/* Make ABT panel port a dummy to avoid DTC complaints */
+&panel_input {
+	remote-endpoint = <&panel_input>;
+};
+
+&panel_output {
+	remote-endpoint = <&frida_input>;
+};

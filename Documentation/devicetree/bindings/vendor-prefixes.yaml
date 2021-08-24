@@ -1280,6 +1280,8 @@ patternProperties:
     description: Wondermedia Technologies, Inc.
   "^wobo,.*":
     description: Wobo
+  "^wolsen,.*":
+    description: Shenzhen Wolsen Technology Co., Ltd.
   "^x-powers,.*":
     description: X-Powers
   "^xes,.*":

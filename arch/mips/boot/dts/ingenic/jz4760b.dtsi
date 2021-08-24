@@ -1,0 +1,30 @@
+// SPDX-License-Identifier: GPL-2.0
+
+#include "jz4760.dtsi"
+
+/ {
+	compatible = "ingenic,jz4760b";
+};
+
+&ost {
+	compatible = "ingenic,jz4760b-ost";
+};
+
+&pinctrl {
+	compatible = "ingenic,jz4760b-pinctrl";
+};
+
+&mdmac {
+	compatible = "ingenic,jz4760b-mdma";
+	reg = <0x13030000 0xc0>, <0x13030300 0x1c>;
+};
+
+&dmac0 {
+	compatible = "ingenic,jz4760b-dma";
+	reg = <0x13420000 0xc0>, <0x13420300 0x1c>;
+};
+
+&dmac1 {
+	compatible = "ingenic,jz4760b-dma";
+	reg = <0x13420100 0xc0>, <0x13420400 0x1c>;
+};

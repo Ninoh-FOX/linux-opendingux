@@ -1,0 +1,11 @@
+// SPDX-License-Identifier: GPL-2.0
+/dts-v1/;
+
+/* LDK (vertical) is a LDK (horizontal) with a JZ4760B SoC */
+#include "ldkh.dts"
+#include "jz4760b.dtsi"
+
+/ {
+	compatible = "wolsen,ldkv", "ingenic,jz4760b";
+	model = "Wolsen LDK (vertical)";
+};

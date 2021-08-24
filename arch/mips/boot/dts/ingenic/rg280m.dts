@@ -1,0 +1,57 @@
+// SPDX-License-Identifier: GPL-2.0
+/dts-v1/;
+
+#include "rg280v.dts"
+
+/ {
+	compatible = "ylm,rg280m", "ingenic,jz4770";
+	model = "Anbernic RG-280M";
+
+	joysticks: joysticks {
+                compatible = "adc-joystick";
+                io-channels = <&adc INGENIC_ADC_TOUCH_YP>,
+                              <&adc INGENIC_ADC_TOUCH_XP>;
+                #address-cells = <1>;
+                #size-cells = <0>;
+
+                axis@0 {
+                        reg = <0>;
+                        linux,code = <ABS_X>;
+                        abs-range = <3000 200>;
+                        abs-fuzz = <4>;
+                        abs-flat = <200>;
+                };
+
+                axis@1 {
+                        reg = <1>;
+                        linux,code = <ABS_Y>;
+                        abs-range = <3000 200>;
+                        abs-fuzz = <4>;
+                        abs-flat = <200>;
+                };
+        };
+};
+
+&sound_card {
+	simple-audio-card,routing =
+		"Headphones Amp INL", "LHPOUT",
+		"Headphones Amp INR", "RHPOUT",
+		"Headphones", "Headphones Amp OUTL",
+		"Headphones", "Headphones Amp OUTR",
+		"Speaker Amp INL", "Headphones Amp OUTL",
+		"Speaker Amp INR", "Headphones Amp OUTR",
+		"Speaker", "Speaker Amp OUTL",
+		"Speaker", "Speaker Amp OUTR",
+		"Built-in Mic", "MICBIAS",
+		"MIC1P", "Built-in Mic",
+		"MIC1N", "Built-in Mic";
+};
+
+&gpio_keys {
+	button@17 {
+		label = "L3 joystick button";
+		linux,code = <KEY_KPSLASH>;
+		linux,can-disable;
+		gpios = <&gpb 14 GPIO_ACTIVE_LOW>;
+	};
+};

@@ -1,0 +1,130 @@
+// SPDX-License-Identifier: GPL-2.0
+/dts-v1/;
+
+#include "rg280m.dts"
+
+#include <dt-bindings/interrupt-controller/irq.h>
+
+/ {
+	compatible = "ylm,rg350m", "ingenic,jz4770";
+	model = "Anbernic RG-350M";
+
+	hdmi_power: regulator@3 {
+		compatible = "regulator-fixed";
+		regulator-name = "hdmi_pwr";
+		gpio = <&gpf 22 0>;
+		enable-active-high;
+
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		vin-supply = <&vcc>;
+	};
+
+	hdmi-connector {
+		compatible = "hdmi-connector";
+		label = "hdmi";
+
+		type = "c";
+
+		port {
+			hdmi_connector_in: endpoint {
+				remote-endpoint = <&hdmi_connector_out>;
+			};
+		};
+	};
+};
+
+&panel {
+	compatible = "leadtek,ltk035c5444t-spi";
+	spi-max-frequency = <15000000>;
+};
+
+&pins_lcd {
+	groups = "lcd-24bit";
+};
+
+&gpio_keys {
+	button@18 {
+		label = "R3 joystick button";
+		linux,code = <KEY_KPDOT>;
+		linux,can-disable;
+		gpios = <&gpb 15 GPIO_ACTIVE_LOW>;
+	};
+};
+
+&joysticks {
+	io-channels = <&adc INGENIC_ADC_TOUCH_YP>,
+		      <&adc INGENIC_ADC_TOUCH_XP>,
+		      <&adc INGENIC_ADC_TOUCH_YN>,
+		      <&adc INGENIC_ADC_TOUCH_XN>;
+
+	axis@2 {
+		reg = <2>;
+		linux,code = <ABS_RX>;
+		abs-range = <200 3000>;
+		abs-fuzz = <4>;
+		abs-flat = <200>;
+	};
+
+	axis@3 {
+		reg = <3>;
+		linux,code = <ABS_RY>;
+		abs-range = <200 3000>;
+		abs-fuzz = <4>;
+		abs-flat = <200>;
+	};
+};
+
+&i2c0 {
+	status = "okay";
+
+	clock-frequency = <100000>; /* 100 kHz */
+
+	hdmi@4c {
+		compatible = "ite,it66121";
+		reg = <0x4c>;
+
+		interrupt-parent = <&gpf>;
+		interrupts = <12 IRQ_TYPE_EDGE_FALLING>;
+		interrupt-names = "irq";
+
+		reset-gpios = <&gpe 6 GPIO_ACTIVE_LOW>;
+
+		pinctrl-names = "default";
+		pinctrl-0 = <&pins_it6610>;
+
+		vrf12-supply = <&hdmi_power>;
+		vcn33-supply = <&hdmi_power>;
+		vcn18-supply = <&hdmi_power>;
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				reg = <0>;
+
+				it66121_input: endpoint {
+					bus-width = <24>;
+					remote-endpoint = <&hdmi_output>;
+				};
+			};
+
+			port@1 {
+				reg = <1>;
+
+				hdmi_connector_out: endpoint {
+					remote-endpoint = <&hdmi_connector_in>;
+				};
+			};
+		};
+	};
+};
+
+&hdmi_output {
+	remote-endpoint = <&it66121_input>;
+};
+
+&hdmi_input {
+	remote-endpoint = <&hdmi_input>;
+};

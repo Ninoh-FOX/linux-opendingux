@@ -1,0 +1,138 @@
+// SPDX-License-Identifier: GPL-2.0
+/dts-v1/;
+
+#include "gcw0.dts"
+
+/ {
+	compatible = "ylm,rg280v", "ingenic,jz4770";
+	model = "Anbernic RG-280V";
+};
+
+&joystick {
+	status = "disabled";
+};
+
+&headphones_amp {
+	VCC-supply = <&vcc>;
+};
+
+&speaker_amp {
+	VCC-supply = <&vcc>;
+};
+
+&btn6 {
+	label = "Button X";
+};
+
+&btn7 {
+	label = "Button Y";
+};
+
+&btn8 {
+	gpios = <&gpb 10 GPIO_ACTIVE_LOW>;
+};
+
+&btn9 {
+	gpios = <&gpe 26 GPIO_ACTIVE_LOW>;
+};
+
+&pmu {
+	charger = <&usb_conn>;
+	power-supplies = <&usb_conn>;
+};
+
+&usb_conn {
+	vbus-supply = <&vcc>;
+};
+
+&gpio_keys {
+	button@13 {
+		label = "L2 shoulder button";
+		linux,code = <KEY_PAGEUP>;
+		linux,can-disable;
+		gpios = <&gpb 20 GPIO_ACTIVE_LOW>;
+	};
+
+	button@14 {
+		label = "R2 shoulder button";
+		linux,code = <KEY_PAGEDOWN>;
+		linux,can-disable;
+		gpios = <&gpb 11 GPIO_ACTIVE_LOW>;
+	};
+
+	button@15 {
+		label = "Volume+ button";
+		linux,code = <KEY_VOLUMEUP>;
+		linux,can-disable;
+		gpios = <&gpb 12 GPIO_ACTIVE_LOW>;
+	};
+
+	button@16 {
+		label = "Volume- button";
+		linux,code = <KEY_VOLUMEDOWN>;
+		linux,can-disable;
+		gpios = <&gpb 13 GPIO_ACTIVE_LOW>;
+	};
+};
+
+&sound_card {
+	simple-audio-card,name = "ylm-audio";
+	simple-audio-card,widgets =
+		"Speaker", "Speaker",
+		"Headphone", "Headphones",
+		"Microphone", "Built-in Mic";
+	simple-audio-card,routing =
+		"Headphones Amp INL", "LHPOUT",
+		"Headphones Amp INR", "RHPOUT",
+		"Headphones", "Headphones Amp OUTL",
+		"Headphones", "Headphones Amp OUTR",
+		"Speaker Amp INL", "LOUT",
+		"Speaker Amp INR", "ROUT",
+		"Speaker", "Speaker Amp OUTL",
+		"Speaker", "Speaker Amp OUTR",
+		"Built-in Mic", "MICBIAS",
+		"MIC1P", "Built-in Mic",
+		"MIC1N", "Built-in Mic";
+	simple-audio-card,pin-switches = "Speaker";
+};
+
+&panel {
+	compatible = "abt,y030xx067a";
+	power-supply = <&vcc>;
+};
+
+&i2c3 {
+	status = "disabled";
+};
+
+&i2c4 {
+	status = "disabled";
+};
+
+&it6610 {
+	status = "disabled";
+};
+
+&dc_charger {
+	status = "disabled";
+};
+
+&pins_lcd {
+	groups = "lcd-8bit";
+};
+
+&otg_phy {
+	vcc-supply = <&vcc>;
+};
+
+&i2c0 {
+	status = "disabled";
+};
+
+&radio {
+	status = "disabled";
+};
+
+&i2c1 {
+	status = "disabled";
+};

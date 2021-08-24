@@ -21,6 +21,7 @@
 #include <linux/of_device.h>
 #include <linux/pinctrl/consumer.h>
 #include <linux/platform_device.h>
+#include <linux/rwsem.h>
 #include <linux/scatterlist.h>
 
 #include <asm/cacheflush.h>
@@ -149,6 +150,9 @@ struct jz4740_mmc_host {
 	struct platform_device *pdev;
 	struct clk *clk;
 
+	struct rw_semaphore clk_rwsem;
+	struct notifier_block clock_nb;
+
 	enum jz4740_mmc_version version;
 
 	int irq;
@@ -217,11 +221,23 @@ static void jz4740_mmc_release_dma_channels(struct jz4740_mmc_host *host)
 		return;
 
 	dma_release_channel(host->dma_tx);
-	dma_release_channel(host->dma_rx);
+	if (host->dma_rx)
+		dma_release_channel(host->dma_rx);
 }
 
 static int jz4740_mmc_acquire_dma_channels(struct jz4740_mmc_host *host)
 {
+	struct device *dev = mmc_dev(host->mmc);
+
+	host->dma_tx = dma_request_chan(dev, "tx-rx");
+	if (!IS_ERR(host->dma_tx))
+		return 0;
+
+	if (PTR_ERR(host->dma_tx) != -ENODEV) {
+		dev_err(dev, "Failed to get dma tx-rx channel\n");
+		return PTR_ERR(host->dma_tx);
+	}
+
 	host->dma_tx = dma_request_chan(mmc_dev(host->mmc), "tx");
 	if (IS_ERR(host->dma_tx)) {
 		dev_err(mmc_dev(host->mmc), "Failed to get dma_tx channel\n");
@@ -241,7 +257,10 @@ static int jz4740_mmc_acquire_dma_channels(struct jz4740_mmc_host *host)
 static inline struct dma_chan *jz4740_mmc_get_dma_chan(struct jz4740_mmc_host *host,
 						       struct mmc_data *data)
 {
-	return (data->flags & MMC_DATA_READ) ? host->dma_rx : host->dma_tx;
+	if ((data->flags & MMC_DATA_READ) && host->dma_rx)
+		return host->dma_rx;
+	else
+		return host->dma_tx;
 }
 
 static void jz4740_mmc_dma_unmap(struct jz4740_mmc_host *host,
@@ -338,6 +357,8 @@ static void jz4740_mmc_pre_request(struct mmc_host *mmc,
 	struct jz4740_mmc_host *host = mmc_priv(mmc);
 	struct mmc_data *data = mrq->data;
 
+	down_read(&host->clk_rwsem);
+
 	if (!host->use_dma)
 		return;
 
@@ -352,6 +373,8 @@ static void jz4740_mmc_post_request(struct mmc_host *mmc,
 {
 	struct jz4740_mmc_host *host = mmc_priv(mmc);
 	struct mmc_data *data = mrq->data;
+
+	up_read(&host->clk_rwsem);
 
 	if (data && data->host_cookie != COOKIE_UNMAPPED)
 		jz4740_mmc_dma_unmap(host, data);
@@ -578,10 +601,6 @@ static bool jz4740_mmc_read_data(struct jz4740_mmc_host *host,
 			}
 		}
 		data->bytes_xfered += miter->length;
-
-		/* This can go away once MIPS implements
-		 * flush_kernel_dcache_page */
-		flush_dcache_page(miter->page);
 	}
 	sg_miter_stop(miter);
 
@@ -957,6 +976,48 @@ static const struct mmc_host_ops jz4740_mmc_ops = {
 	.enable_sdio_irq = jz4740_mmc_enable_sdio_irq,
 };
 
+static inline struct jz4740_mmc_host *
+jz4740_mmc_nb_get_priv(struct notifier_block *nb)
+{
+	return container_of(nb, struct jz4740_mmc_host, clock_nb);
+}
+
+static struct clk *jz4740_mmc_get_parent_clk(struct clk *clk)
+{
+	/*
+	 * Return the first clock above the one that will effectively modify
+	 * its rate when clk_set_rate(clk) is called.
+	 */
+	clk = clk_get_first_to_set_rate(clk);
+
+	return clk_get_parent(clk);
+}
+
+static int jz4740_mmc_update_clk(struct notifier_block *nb,
+				 unsigned long action,
+				 void *data)
+{
+	struct jz4740_mmc_host *host = jz4740_mmc_nb_get_priv(nb);
+
+	/*
+	 * PLL may have changed its frequency; our clock may be running above
+	 * spec. Wait until MMC is idle (using host->clk_rwsem) before changing
+	 * the PLL clock, and after it's done, reset our clock rate.
+	 */
+
+	switch (action) {
+	case PRE_RATE_CHANGE:
+		down_write(&host->clk_rwsem);
+		break;
+	default:
+		clk_set_rate(host->clk, host->mmc->f_max);
+		up_write(&host->clk_rwsem);
+		break;
+	}
+
+	return NOTIFY_OK;
+}
+
 static const struct of_device_id jz4740_mmc_of_match[] = {
 	{ .compatible = "ingenic,jz4740-mmc", .data = (void *) JZ_MMC_JZ4740 },
 	{ .compatible = "ingenic,jz4725b-mmc", .data = (void *)JZ_MMC_JZ4725B },
@@ -974,6 +1035,7 @@ static int jz4740_mmc_probe(struct platform_device* pdev)
 	struct mmc_host *mmc;
 	struct jz4740_mmc_host *host;
 	const struct of_device_id *match;
+	struct clk *parent_clk;
 
 	mmc = mmc_alloc_host(sizeof(struct jz4740_mmc_host), &pdev->dev);
 	if (!mmc) {
@@ -1060,12 +1122,23 @@ static int jz4740_mmc_probe(struct platform_device* pdev)
 		goto err_free_irq;
 	host->use_dma = !ret;
 
+	init_rwsem(&host->clk_rwsem);
+	host->clock_nb.notifier_call = jz4740_mmc_update_clk;
+
+	parent_clk = jz4740_mmc_get_parent_clk(host->clk);
+
+	ret = clk_notifier_register(parent_clk, &host->clock_nb);
+	if (ret) {
+		dev_err(&pdev->dev, "Unable to register clock notifier\n");
+		goto err_release_dma;
+	}
+
 	platform_set_drvdata(pdev, host);
 	ret = mmc_add_host(mmc);
 
 	if (ret) {
 		dev_err(&pdev->dev, "Failed to add mmc host: %d\n", ret);
-		goto err_release_dma;
+		goto err_unregister_clk_notifier;
 	}
 	dev_info(&pdev->dev, "Ingenic SD/MMC card driver registered\n");
 
@@ -1076,6 +1149,8 @@ static int jz4740_mmc_probe(struct platform_device* pdev)
 
 	return 0;
 
+err_unregister_clk_notifier:
+	clk_notifier_unregister(parent_clk, &host->clock_nb);
 err_release_dma:
 	if (host->use_dma)
 		jz4740_mmc_release_dma_channels(host);

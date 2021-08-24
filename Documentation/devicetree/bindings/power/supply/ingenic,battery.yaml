@@ -10,6 +10,9 @@ title: Ingenic JZ47xx battery bindings
 maintainers:
   - Artur Rojek <contact@artur-rojek.eu>
 
+allOf:
+  - $ref: power-supply.yaml
+
 properties:
   compatible:
     oneOf:
@@ -17,6 +20,8 @@ properties:
       - items:
           - enum:
               - ingenic,jz4725b-battery
+              - ingenic,jz4760-battery
+              - ingenic,jz4760b-battery
               - ingenic,jz4770-battery
           - const: ingenic,jz4740-battery
 
@@ -41,7 +46,7 @@ required:
   - io-channel-names
   - monitored-battery
 
-additionalProperties: false
+unevaluatedProperties: false
 
 examples:
   - |

@@ -35,6 +35,14 @@ config DRM_MIPI_DSI
 	bool
 	depends on DRM
 
+config DRM_MIPI_DBI_SPI
+	tristate "SPI host support for MIPI DBI"
+	depends on DRM && OF && SPI
+	select DRM_MIPI_DSI
+	select DRM_MIPI_DBI
+	help
+	  Enable this option to support DBI panels connected over SPI.
+
 config DRM_DP_AUX_CHARDEV
 	bool "DRM DP AUX Interface"
 	depends on DRM
