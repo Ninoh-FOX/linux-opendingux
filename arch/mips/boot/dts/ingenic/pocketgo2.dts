@@ -4,8 +4,8 @@
 #include "rg280m.dts"
 
 / {
-	compatible = "wolsen,playgo", "ingenic,jz4770";
-	model = "Wolsen PlayGo";
+	compatible = "PocketGo2,v1", "ingenic,jz4770";
+	model = "PocketGo2 v1";
 
 	panel {
 		compatible = "frida,frd350h54004";
@@ -23,10 +23,6 @@
 	};
 };
 
-&pins_lcd {
-	groups = "lcd-24bit";
-};
-
 &panel {
 	status = "disabled";
 };
@@ -40,7 +36,35 @@
 	remote-endpoint = <&frida_input>;
 };
 
-&gpio_keys {	
+&gpio_keys {
+	button@13 {
+		label = "L2 shoulder button";
+		linux,code = <KEY_RIGHTSHIFT>;
+		linux,can-disable;
+		gpios = <&gpd 31 GPIO_ACTIVE_LOW>;
+	};
+
+	button@14 {
+		label = "R2 shoulder button";
+		linux,code = <KEY_RIGHTALT>;
+		linux,can-disable;
+		gpios = <&gpf 10 GPIO_ACTIVE_LOW>;
+	};
+	
+	button@15 {
+		label = "Volume+ button";
+		linux,code = <KEY_VOLUMEUP>;
+		linux,can-disable;
+		gpios = <&gpd 19 GPIO_ACTIVE_LOW>;
+	};
+
+	button@16 {
+		label = "Volume- button";
+		linux,code = <KEY_VOLUMEDOWN>;
+		linux,can-disable;
+		gpios = <&gpe 13 GPIO_ACTIVE_LOW>;
+	};
+	
 	button@19 {
 		label = "Menu button";
 		linux,code = <KEY_RIGHTCTRL>;
