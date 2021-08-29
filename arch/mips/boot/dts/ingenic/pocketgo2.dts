@@ -1,74 +1,106 @@
 // SPDX-License-Identifier: GPL-2.0
 /dts-v1/;
 
-#include "rg280m.dts"
+#include "gcw0.dts"
 
 / {
-	compatible = "PocketGo2,v1", "ingenic,jz4770";
+	compatible = "wolsen,pg2v1", "ingenic,jz4770";
 	model = "PocketGo2 v1";
-
-	panel {
-		compatible = "frida,frd350h54004";
-
-		reset-gpios = <&gpe 2 GPIO_ACTIVE_LOW>;
-
-		backlight = <&backlight>;
-		power-supply = <&vcc>;
-
-		port {
-			frida_input: endpoint {
-				remote-endpoint = <&panel_output>;
-			};
-		};
-	};
 };
 
-&panel {
-	status = "disabled";
+&btn6 {
+	label = "Button X";
 };
 
-/* Make ABT panel port a dummy to avoid DTC complaints */
-&panel_input {
-	remote-endpoint = <&panel_input>;
+&btn7 {
+	label = "Button Y";
+};
+&btn8 {
+	gpios = <&gpb 20 GPIO_ACTIVE_LOW>;
 };
 
-&panel_output {
-	remote-endpoint = <&frida_input>;
+&btn9 {
+	gpios = <&gpe 26 GPIO_ACTIVE_LOW>;
+};
+
+&pmu {
+	charger = <&usb_conn>;
+	power-supplies = <&usb_conn>;
+};
+
+&usb_conn {
+	vbus-supply = <&vcc>;
 };
 
 &gpio_keys {
-	button@13 {
-		label = "L2 shoulder button";
-		linux,code = <KEY_RIGHTSHIFT>;
-		linux,can-disable;
-		gpios = <&gpd 31 GPIO_ACTIVE_LOW>;
-	};
+		button@14 {
+			label = "L2 shoulder button";
+			linux,code = <KEY_RIGHTSHIFT>;
+			linux,can-disable;
+			gpios = <&gpd 31 GPIO_ACTIVE_LOW>;
+		};
 
-	button@14 {
-		label = "R2 shoulder button";
-		linux,code = <KEY_RIGHTALT>;
-		linux,can-disable;
-		gpios = <&gpf 10 GPIO_ACTIVE_LOW>;
-	};
+		button@15 {
+			label = "R2 shoulder button";
+			linux,code = <KEY_RIGHTALT>;
+			linux,can-disable;
+			gpios = <&gpf 10 GPIO_ACTIVE_LOW>;
+		};
 	
-	button@15 {
-		label = "Volume+ button";
-		linux,code = <KEY_VOLUMEUP>;
-		linux,can-disable;
-		gpios = <&gpd 19 GPIO_ACTIVE_LOW>;
-	};
+		button@16 {
+			label = "Volume+ button";
+			linux,code = <KEY_VOLUMEUP>;
+			linux,can-disable;
+			gpios = <&gpd 19 GPIO_ACTIVE_LOW>;
+		};
 
-	button@16 {
-		label = "Volume- button";
-		linux,code = <KEY_VOLUMEDOWN>;
-		linux,can-disable;
-		gpios = <&gpe 13 GPIO_ACTIVE_LOW>;
-	};
+		button@17 {
+			label = "Volume- button";
+			linux,code = <KEY_VOLUMEDOWN>;
+			linux,can-disable;
+			gpios = <&gpe 13 GPIO_ACTIVE_LOW>;
+		};
 	
-	button@19 {
-		label = "Menu button";
-		linux,code = <KEY_RIGHTCTRL>;
-		linux,can-disable;
-		gpios = <&gpe 8 GPIO_ACTIVE_LOW>;
-	};
+		button@18 {
+			label = "Menu button";
+			linux,code = <KEY_RIGHTCTRL>;
+			linux,can-disable;
+			gpios = <&gpe 8 GPIO_ACTIVE_LOW>;
+		};
 };
+
+&panel {
+	compatible = "kingdisplay,kd035g6-54nt";
+	reset-gpios = <&gpe 2 GPIO_ACTIVE_LOW>;
+	backlight = <&backlight>;
+	power-supply = <&vcc>;
+};
+
+&i2c4 {
+	status = "disabled";
+};
+
+&it6610 {
+	status = "disabled";
+};
+
+&dc_charger {
+	status = "disabled";
+};
+
+&pins_lcd {
+	groups = "lcd-24bit";
+};
+
+&i2c0 {
+	status = "disabled";
+};
+
+&radio {
+	status = "disabled";
+};
+
+&usb_vbus {
+	status = "disabled";
+};
+
