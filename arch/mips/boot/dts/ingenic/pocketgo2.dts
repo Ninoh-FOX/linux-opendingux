@@ -4,8 +4,40 @@
 #include "gcw0.dts"
 
 / {
-	compatible = "wolsen,pg2v1", "ingenic,jz4770";
-	model = "PocketGo2 v1";
+	compatible = "wolsen,PocketGo2", "ingenic,jz4770";
+	model = "wolsen PocketGo2";
+	
+	panel {
+		compatible = "frida,frd350h54004";
+
+		reset-gpios = <&gpe 2 GPIO_ACTIVE_LOW>;
+
+		backlight = <&backlight>;
+		power-supply = <&vcc>;
+
+		port {
+			frida_input: endpoint {
+				remote-endpoint = <&panel_output>;
+			};
+		};
+	};
+};
+
+&pins_lcd {
+	groups = "lcd-24bit";
+};
+
+&panel {
+	status = "disabled";
+};
+
+/* Make ABT panel port a dummy to avoid DTC complaints */
+&panel_input {
+	remote-endpoint = <&panel_input>;
+};
+
+&panel_output {
+	remote-endpoint = <&frida_input>;
 };
 
 &btn6 {
@@ -35,14 +67,14 @@
 &gpio_keys {
 		button@14 {
 			label = "L2 shoulder button";
-			linux,code = <KEY_RIGHTSHIFT>;
+			linux,code = <KEY_PAGEUP>;
 			linux,can-disable;
 			gpios = <&gpd 31 GPIO_ACTIVE_LOW>;
 		};
 
 		button@15 {
 			label = "R2 shoulder button";
-			linux,code = <KEY_RIGHTALT>;
+			linux,code = <KEY_PAGEDOWN>;
 			linux,can-disable;
 			gpios = <&gpf 10 GPIO_ACTIVE_LOW>;
 		};
@@ -69,13 +101,6 @@
 		};
 };
 
-&panel {
-	compatible = "kingdisplay,kd035g6-54nt";
-	reset-gpios = <&gpe 2 GPIO_ACTIVE_LOW>;
-	backlight = <&backlight>;
-	power-supply = <&vcc>;
-};
-
 &i2c4 {
 	status = "disabled";
 };
@@ -86,10 +111,6 @@
 
 &dc_charger {
 	status = "disabled";
-};
-
-&pins_lcd {
-	groups = "lcd-24bit";
 };
 
 &i2c0 {
@@ -103,4 +124,3 @@
 &usb_vbus {
 	status = "disabled";
 };
-
