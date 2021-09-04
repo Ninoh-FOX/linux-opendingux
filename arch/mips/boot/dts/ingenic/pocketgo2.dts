@@ -95,7 +95,7 @@
 	
 		button@18 {
 			label = "Menu button";
-			linux,code = <KEY_RIGHTCTRL>;
+			linux,code = <KEY_HOME>;
 			linux,can-disable;
 			gpios = <&gpe 8 GPIO_ACTIVE_LOW>;
 		};
